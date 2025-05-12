@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
 import { ArrowRight } from 'lucide-react';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Pagination } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/pagination';
 import './Activities.css';
@@ -14,19 +12,9 @@ interface ActivitiesProps {
 }
 
 const Activities = ({ showHeader = true, displayOn = 'activities' }: ActivitiesProps) => {
-  const [isMobile, setIsMobile] = useState(false);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   useEffect(() => {
     setIsLoading(true);
@@ -45,8 +33,8 @@ const Activities = ({ showHeader = true, displayOn = 'activities' }: ActivitiesP
   }, [displayOn]);
 
   const ActivityCard = ({ activity }: { activity: Activity }) => (
-    <div className="bg-white rounded-2xl overflow-hidden shadow-md h-full w-[384px] mx-auto">
-      <div className="relative overflow-hidden w-[384px] h-[192px]">
+    <div className="bg-white rounded-2xl overflow-hidden shadow-md h-full mx-auto">
+      <div className="relative overflow-hidden aspect-[2/1]">
         <img 
           src={activity.image_path} 
           alt={activity.title}
@@ -55,7 +43,6 @@ const Activities = ({ showHeader = true, displayOn = 'activities' }: ActivitiesP
           height="192"
           loading="eager"
           decoding="sync"
-          style={{ minWidth: '384px', minHeight: '192px' }}
           onError={(e) => {
             // Fallback image if the original fails to load
             e.currentTarget.src = '/assets/hero.jpg';
@@ -91,39 +78,15 @@ const Activities = ({ showHeader = true, displayOn = 'activities' }: ActivitiesP
           <div className="bg-red-50 p-6 rounded-lg text-center text-red-600 mb-8">
             <p>{error}</p>
           </div>
-        ) : isMobile ? (
-          <div className="min-h-[300px] w-full pb-12 overflow-x-hidden">
-            <Swiper
-              modules={[Pagination]}
-              spaceBetween={16}
-              slidesPerView={1}
-              centeredSlides={true}
-              pagination={{ clickable: true }}
-              className="w-full activities-swiper"
-              role="region"
-              aria-label="Activities carousel"
-              style={{ width: '384px', margin: '0 auto' }}
-            >
-              {activities.length === 0 ? (
-                <SwiperSlide>
-                  <div className="text-center py-12 text-gray-500">No activities found.</div>
-                </SwiperSlide>
-              ) : (
-                activities.map((activity) => (
-                  <SwiperSlide key={activity.id}>
-                    <ActivityCard activity={activity} />
-                  </SwiperSlide>
-                ))
-              )}
-            </Swiper>
-          </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 min-h-[300px]">
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8 min-h-[300px]">
             {activities.length === 0 ? (
               <div className="col-span-full text-center py-12 text-gray-500">No activities found.</div>
             ) : (
               activities.map((activity) => (
-                <ActivityCard key={activity.id} activity={activity} />
+                <div key={activity.id} className="col-span-1">
+                  <ActivityCard activity={activity} />
+                </div>
               ))
             )}
           </div>
