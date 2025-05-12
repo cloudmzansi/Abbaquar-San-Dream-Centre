@@ -58,7 +58,7 @@ const Activities = ({ showHeader = true, displayOn = 'activities' }: ActivitiesP
           style={{ minWidth: '384px', minHeight: '192px' }}
           onError={(e) => {
             // Fallback image if the original fails to load
-            e.currentTarget.src = '/assets/hero.webp';
+            e.currentTarget.src = '/assets/hero.jpg';
           }}
         />
       </div>

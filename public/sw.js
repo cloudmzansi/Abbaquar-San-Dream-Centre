@@ -9,7 +9,7 @@ const PRECACHE_URLS = [
   '/',
   '/index.html',
   '/assets/abbaquar-logo.webp',
-  '/assets/hero.webp',
+  '/assets/hero.jpg',
 ];
 
 // Install event - precache static assets

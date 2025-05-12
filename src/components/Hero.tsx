@@ -53,8 +53,8 @@ const Hero = memo(() => {
             <div className="relative">
               <div className="rounded-3xl overflow-hidden shadow-2xl">
                 <img 
-                  src="/assets/hero.webp" 
-                  alt="Abbaquar San Dream Centre community event" 
+                  src="/assets/hero.jpg" 
+                  alt="Abbaquar-San Dream Centre community event" 
                   width="600" 
                   height="400"
                   className="w-full h-full object-cover"

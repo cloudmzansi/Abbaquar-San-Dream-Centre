@@ -87,7 +87,7 @@ const Gallery = () => {
                         width="384"
                         height="256"
                         onError={(e) => {
-                          e.currentTarget.src = '/assets/hero.webp';
+                          e.currentTarget.src = '/assets/hero.jpg';
                         }} 
                       />
                       {photo.title && (

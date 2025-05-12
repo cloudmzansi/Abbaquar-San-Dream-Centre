@@ -19,16 +19,20 @@ const Contact = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:grid-rows-1">
           <div className="lg:col-span-2 lg:h-full">
             <div className="bg-[#083060]/90 backdrop-blur-sm rounded-xl overflow-hidden shadow-lg transform transition-all duration-300 hover:shadow-xl h-full">
-              <HomeContactForm />
+              <div className="p-6 sm:p-8">
+                <h2 className="text-xl sm:text-2xl font-bold mb-6 text-[#F5F5F0]">Send us a message</h2>
+                <HomeContactForm showContainer={false} />
+              </div>
             </div>
           </div>
           
           <div className="flex flex-col lg:h-full space-y-6">
             <div className="bg-[#083060]/90 backdrop-blur-sm p-6 sm:p-8 rounded-xl border border-white/20 shadow-lg transform transition-all duration-300 hover:shadow-xl flex-1">
+              <h3 className="text-lg font-semibold mb-4 text-white">Contact Information</h3>
               <div className="space-y-6">
                 <div className="flex items-start gap-4">
                   <div className="bg-white/10 p-3 rounded-lg flex-shrink-0">
-                    <MapPin className="h-5 w-5 text-[#D4A017]" />
+                    <MapPin className="h-6 w-6 text-[#D4A017]" />
                   </div>
                   <div>
                     <h4 className="text-white font-semibold text-base mb-1">Address</h4>
@@ -38,7 +42,7 @@ const Contact = () => {
                 
                 <div className="flex items-start gap-4">
                   <div className="bg-white/10 p-3 rounded-lg flex-shrink-0">
-                    <Phone className="h-5 w-5 text-[#D4A017]" />
+                    <Phone className="h-6 w-6 text-[#D4A017]" />
                   </div>
                   <div>
                     <h4 className="text-white font-semibold text-base mb-1">Phone</h4>
@@ -48,11 +52,11 @@ const Contact = () => {
                 
                 <div className="flex items-start gap-4">
                   <div className="bg-white/10 p-3 rounded-lg flex-shrink-0">
-                    <Mail className="h-5 w-5 text-[#D4A017]" />
+                    <Mail className="h-6 w-6 text-[#D4A017]" />
                   </div>
                   <div>
                     <h4 className="text-white font-semibold text-base mb-1">Email</h4>
-                    <p className="text-gray-200 text-sm break-all">info@abbaquar-sandreamcentre.co.za</p>
+                    <p className="text-gray-200 text-sm break-all">olivia@abbaquar-sandreamcentre.co.za</p>
                   </div>
                 </div>
               </div>

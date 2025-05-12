@@ -240,7 +240,7 @@ const GalleryAdmin = () => {
                     alt={image.alt_text || `${image.category} photo`} 
                     className="w-full h-48 object-cover" 
                     onError={(e) => {
-                      e.currentTarget.src = '/assets/hero.webp';
+                      e.currentTarget.src = '/assets/hero.jpg';
                     }} 
                   />
                   <div className="p-3">

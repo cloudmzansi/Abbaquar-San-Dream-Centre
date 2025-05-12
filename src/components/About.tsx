@@ -1,5 +1,3 @@
-
-
 const About = () => {
   return (
     <section id="about" className="py-16 md:py-24 bg-white">
@@ -8,7 +6,7 @@ const About = () => {
           <span className="text-[#D72660] font-semibold mb-4 block">Who We Are</span>
           <h2 className="text-4xl md:text-5xl font-bold mb-6 text-[#073366] font-serif">About Us</h2>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            We are a cultural organization dedicated to uplifting and rebuilding our community through various programs and initiatives.
+            We are a cultural organisation dedicated to uplifting and rebuilding our community through various programmes and initiatives.
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-center">
@@ -16,7 +14,7 @@ const About = () => {
             <div>
               <h3 className="text-2xl font-bold mb-4 text-[#073366]">The Royal House</h3>
               <p className="text-gray-600">
-                The Abbaquar-San Royal house is now official and recognised in Parliament. 
+                The Abbaquar-San Royal House is now official and recognised in Parliament. 
                 This comes after President Cyril Ramaphosa announced in March that the Traditional 
                 and Khoisan Leadership Act would come into effect from 1 April 2021.
               </p>
@@ -24,9 +22,9 @@ const About = () => {
             <div>
               <h3 className="text-2xl font-bold mb-4 text-[#073366]">Our Community</h3>
               <p className="text-gray-600">
-                We are a cultural organization geared towards assisting, uplifting and rebuilding our community. 
-                As an organization our efforts lie predominately with the youth as well as the elderly within our community. 
-                We offer various activities for the youth, namely Ballet, Karate, Dance, Music lessons and a Youth program.
+                We are a cultural organisation geared towards assisting, uplifting and rebuilding our community. 
+                As an organisation our efforts lie predominately with the youth as well as the elderly within our community. 
+                We offer various activities for the youth, namely Ballet, Karate, Dance, Music lessons and a Youth programme.
               </p>
             </div>
             <div className="pt-4">

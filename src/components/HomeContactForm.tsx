@@ -122,12 +122,11 @@ const HomeContactForm: React.FC<HomeContactFormProps> = ({ showContainer = true 
       
       <form 
         onSubmit={handleSubmit} 
-        className="space-y-5"
+        className={`space-y-5 ${!showContainer ? 'p-0' : ''}`}
         aria-labelledby="contact-form"
         noValidate
       >
       
-
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
           <div>
             <label htmlFor="name" className="block text-white mb-1.5 text-sm font-medium">

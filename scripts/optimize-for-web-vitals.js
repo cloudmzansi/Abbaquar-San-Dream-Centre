@@ -22,7 +22,7 @@ const __dirname = path.dirname(__filename);
 const config = {
   // Critical resources to preload
   criticalResources: [
-    '/assets/hero.webp',
+    '/assets/hero.jpg',
     '/assets/abbaquar-logo.webp',
   ],
   // External domains to preconnect to

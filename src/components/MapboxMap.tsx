@@ -8,7 +8,7 @@ interface MapboxMapProps {
 const FallbackMap = ({ className = '' }: MapboxMapProps) => (
   <div className={`${className} bg-gray-200 flex items-center justify-center rounded-lg`}>
     <div className="text-center p-8">
-      <h3 className="text-xl font-semibold mb-4">Abbaquar-san Dream Centre</h3>
+      <h3 className="text-xl font-semibold mb-4">Abbaquar-San Dream Centre</h3>
       <p className="mb-2">61 Gardenia Road, Wentworth, Durban, 4052</p>
       <p className="text-sm text-gray-600">Map loading unavailable</p>
     </div>
@@ -78,7 +78,7 @@ export default function MapboxMap({ className = '' }: MapboxMapProps) {
         const popup = new window.mapboxgl.Popup({ closeButton: false })
           .setHTML(`
             <div class="p-2">
-              <h3 class="font-semibold">Abbaquar-san Dream Centre</h3>
+              <h3 class="font-semibold">Abbaquar-San Dream Centre</h3>
               <address class="not-italic">61 Gardenia Road, Wentworth, Durban, 4052</address>
             </div>
           `);
@@ -111,7 +111,7 @@ export default function MapboxMap({ className = '' }: MapboxMapProps) {
     <div 
       className={`${className} relative w-full h-full min-h-[500px]`}
       role="region" 
-      aria-label="Map showing location of Abbaquar-san Dream Centre"
+      aria-label="Map showing location of Abbaquar-San Dream Centre"
     >
       <div 
         ref={mapContainer}

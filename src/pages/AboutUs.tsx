@@ -40,16 +40,16 @@ const AboutUs = () => {
         <section aria-labelledby="organization-title" className="py-16 md:py-24">
           <div className="container-custom">
             <div className="max-w-4xl mx-auto text-center mb-16">
-              <span className="text-[#D72660] font-semibold mb-4 block">Who We Are</span>
-              <h2 id="organization-title" className="text-4xl md:text-5xl font-bold mb-6 text-[#073366] font-serif">Our Organization</h2>
+              <span className="text-[#D72660] font-semibold mb-4 block">About Us</span>
+              <h2 id="organization-title" className="text-4xl md:text-5xl font-bold mb-6 text-[#073366] font-serif">Empowering the Youth</h2>
               <div className="mx-auto w-24 h-1 bg-[#D72660] rounded mb-6" />
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div className="rounded-2xl overflow-hidden shadow-xl order-1 lg:order-1">
                 <img 
-                  src="/placeholder.svg"
-                  alt="The Royal House" 
+                  src="/assets/empowering-the-youth.jpg"
+                  alt="Empowering the Youth" 
                   className="w-full h-96 object-cover"
                   width="600"
                   height="400"
@@ -57,8 +57,8 @@ const AboutUs = () => {
               </div>
               <div className="order-2 lg:order-2">
                 <p className="text-gray-600 mb-6 text-lg">
-                  We are a cultural organization geared towards assisting, uplifting and rebuilding our community. 
-                  As an organization our efforts lie predominately with the youth as well as the elderly 
+                  We are a cultural organisation geared towards assisting, uplifting and rebuilding our community. 
+                  As an organisation our efforts lie predominately with the youth as well as the elderly 
                   within our community. We offer various activities for the youth, namely Ballet, Karate, 
                   Dance Music lessons and a Youth program.
                 </p>
@@ -71,23 +71,23 @@ const AboutUs = () => {
         <section aria-labelledby="royal-house-title" className="py-16 md:py-24">
           <div className="container-custom">
             <div className="max-w-4xl mx-auto text-center mb-16">
-              <span className="text-[#D72660] font-semibold mb-4 block">Our Heritage</span>
-              <h2 id="royal-house-title" className="text-4xl md:text-5xl font-bold mb-6 text-[#073366] font-serif">The Royal House</h2>
+              <span className="text-[#D72660] font-semibold mb-4 block">Abbaquar-San Royal House</span>
+              <h2 id="royal-house-title" className="text-4xl md:text-5xl font-bold mb-6 text-[#073366] font-serif">Who We Work With</h2>
               <div className="mx-auto w-24 h-1 bg-[#D72660] rounded mb-6" />
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div>
                 <p className="text-gray-600 mb-6 text-lg">
-                  The Abbaquar-San Royal house is now official and recognised in Parliament. 
+                  The Abbaquar-San Royal House is now official and recognised in Parliament. 
                   This comes after President Cyril Ramaphosa announced in March that the Traditional 
                   and Khoisan Leadership Act would come into effect from 1 April 2021.
                 </p>
               </div>
               <div className="rounded-2xl overflow-hidden shadow-xl">
                 <img 
-                  src="/placeholder.svg"
-                  alt="Royal House" 
+                  src="/assets/who-we-work-with.jpg"
+                  alt="Abbaquar-San Royal House" 
                   className="w-full h-96 object-cover"
                   width="600"
                   height="400"
