@@ -1,0 +1,19 @@
+.activities-swiper {
+  padding-bottom: 40px !important;
+}
+
+.activities-swiper .swiper-pagination-bullet {
+  width: 8px;
+  height: 8px;
+  background: #E2E8F0;
+  opacity: 1;
+}
+
+.activities-swiper .swiper-pagination-bullet-active {
+  background: #D72660;
+  opacity: 1;
+}
+
+.activities-swiper .swiper-pagination {
+  bottom: 0 !important;
+} 

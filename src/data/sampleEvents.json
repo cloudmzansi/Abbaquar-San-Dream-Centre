@@ -1,0 +1,35 @@
+[
+  {
+    "id": "1",
+    "created_at": "2025-05-01T12:00:00Z",
+    "title": "Community Outreach Day",
+    "date": "2025-06-15",
+    "start_time": "10:00 AM",
+    "end_time": "2:00 PM",
+    "venue": "Abbaquar-san Dream Centre",
+    "description": "Join us for a day of community service and outreach. We'll be providing free health screenings, food, and activities for children.",
+    "display_on": "both"
+  },
+  {
+    "id": "2",
+    "created_at": "2025-05-01T12:00:00Z",
+    "title": "Youth Leadership Workshop",
+    "date": "2025-06-28",
+    "start_time": "9:00 AM",
+    "end_time": "12:00 PM",
+    "venue": "Abbaquar-san Dream Centre",
+    "description": "A workshop designed to empower young leaders with skills in communication, problem-solving, and community engagement.",
+    "display_on": "both"
+  },
+  {
+    "id": "3",
+    "created_at": "2025-05-01T12:00:00Z",
+    "title": "Annual Fundraising Gala",
+    "date": "2025-07-10",
+    "start_time": "6:00 PM",
+    "end_time": "10:00 PM",
+    "venue": "Sandton Convention Centre",
+    "description": "Our annual fundraising event featuring dinner, entertainment, and a silent auction. All proceeds go to supporting our community programs.",
+    "display_on": "home"
+  }
+]

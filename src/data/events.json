@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "title": "Movie Night Fundraiser",
+    "date": "June 25, 2024",
+    "time": "6:00 PM - 9:00 PM",
+    "venue": "Community Hall",
+    "description": "Join us for a family-friendly movie night to raise funds for our youth programs.",
+    "image": "/assets/movie-night.webp",
+    "displayOn": "both"
+  },
+  {
+    "id": 2,
+    "title": "Pensioners Christmas Party",
+    "date": "December 8, 2024",
+    "time": "2:00 PM - 5:00 PM",
+    "venue": "Community Center",
+    "description": "Annual celebration honoring our community elders with food, music, and gifts.",
+    "image": "/assets/pensioners-christmas-party.webp",
+    "displayOn": "both"
+  },
+  {
+    "id": 3,
+    "title": "Youth Leadership Workshop",
+    "date": "July 15, 2024",
+    "time": "10:00 AM - 3:00 PM",
+    "venue": "Abbaquar Learning Center",
+    "description": "Full-day workshop teaching leadership skills to community youth ages 13-18.",
+    "image": "/uploads/1746741133771-original-34b346f567dc9b05aca1d3b253fe2d44.webp",
+    "displayOn": "home"
+  }
+] 

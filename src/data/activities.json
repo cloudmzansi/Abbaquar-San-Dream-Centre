@@ -1,0 +1,30 @@
+[
+  {
+    "id": 1,
+    "title": "Karate Classes",
+    "description": "Weekly karate classes for children and teens teaching discipline, self-defense, and focus.",
+    "image": "/assets/karate.webp",
+    "displayOn": "both"
+  },
+  {
+    "id": 2,
+    "title": "Dance Classes",
+    "description": "Modern dance classes exploring movement, rhythm, and cultural expression.",
+    "image": "/assets/dance-classes.webp",
+    "displayOn": "both"
+  },
+  {
+    "id": 3,
+    "title": "Food Parcel Program",
+    "description": "Monthly distribution of food parcels to families in need within our community.",
+    "image": "/assets/food-parcels.webp",
+    "displayOn": "activities"
+  },
+  {
+    "id": 4,
+    "title": "Community Law Clinic",
+    "description": "Free legal advice and consultation services provided monthly by volunteer attorneys.",
+    "image": "/assets/law-clinic.webp",
+    "displayOn": "home"
+  }
+] 

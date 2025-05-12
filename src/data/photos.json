@@ -1,0 +1,37 @@
+[
+  {
+    "id": 1,
+    "image": "/assets/food-parcels.webp",
+    "category": "community"
+  },
+  {
+    "id": 2,
+    "image": "/assets/movie-night.webp",
+    "category": "events"
+  },
+  {
+    "id": 3,
+    "image": "/assets/karate.webp",
+    "category": "activity"
+  },
+  {
+    "id": 4,
+    "image": "/assets/pensioners-christmas-party.webp",
+    "category": "events"
+  },
+  {
+    "id": 5,
+    "image": "/assets/dance-classes.webp",
+    "category": "activity"
+  },
+  {
+    "id": 6,
+    "image": "/uploads/1746738919191-original-4cd2dc0f50c9154f84c7bc491af39935.webp",
+    "category": "events"
+  },
+  {
+    "id": 7,
+    "image": "/uploads/1746741133771-original-34b346f567dc9b05aca1d3b253fe2d44.webp",
+    "category": "community"
+  }
+] 
