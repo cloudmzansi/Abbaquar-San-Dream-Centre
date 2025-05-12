@@ -1,22 +1,33 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, memo } from 'react';
 import { Menu, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
+import { useScrollTop } from '../hooks/use-scroll-top';
 
-const Header = () => {
+const Header = memo(() => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showHeader, setShowHeader] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
 
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  // Use our optimized hook for scroll functionality
+  const { scrollToTop, navigateTo } = useScrollTop();
+  
+  // Handle navigation with proper scrolling
+  const handleNavigation = useCallback((path: string) => {
+    // Only navigate if we're not already on this path
+    if (location.pathname !== path) {
+      navigateTo(path);
+    } else {
+      // If we're already on this page, just scroll to top
+      scrollToTop();
+    }
+  }, [location.pathname, navigateTo, scrollToTop]);
 
-  const toggleMobileMenu = () => {
+  const toggleMobileMenu = useCallback(() => {
     setMobileMenuOpen(!mobileMenuOpen);
     document.body.style.overflow = !mobileMenuOpen ? 'hidden' : 'auto';
-  };
+  }, [mobileMenuOpen]);
 
   useEffect(() => {
     setMobileMenuOpen(false);
@@ -29,9 +40,10 @@ const Header = () => {
     };
   }, []);
 
-  useEffect(() => {
+  // Optimized scroll handler with useCallback to prevent recreating on every render
+  const handleScroll = useCallback(() => {
     let ticking = false;
-    const handleScroll = () => {
+    return () => {
       if (!ticking) {
         window.requestAnimationFrame(() => {
           const currentScrollY = window.scrollY;
@@ -53,11 +65,16 @@ const Header = () => {
         ticking = true;
       }
     };
-    window.addEventListener('scroll', handleScroll);
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
   }, [lastScrollY, mobileMenuOpen]);
+  
+  // Add scroll event listener with the optimized handler
+  useEffect(() => {
+    const scrollHandler = handleScroll();
+    window.addEventListener('scroll', scrollHandler, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', scrollHandler);
+    };
+  }, [handleScroll]);
 
   return (
     <>
@@ -70,10 +87,11 @@ const Header = () => {
         <div className="container-custom py-3">
           <nav className="flex justify-between items-center relative" aria-label="Main navigation">
             <div className="flex items-center">
+              {/* Logo - special handling when on home page */}
               <Link 
                 to="/" 
                 className="flex items-center" 
-                onClick={scrollToTop}
+                onClick={() => handleNavigation('/')}
                 aria-label="Go to homepage"
               >
                 <img 
@@ -89,10 +107,12 @@ const Header = () => {
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center">
               <div className="flex items-center space-x-1" role="menubar">
+                {/* Home link - always use button for consistent behavior */}
                 <Link 
                   to="/" 
                   className="px-4 py-2 text-white/90 hover:text-white transition-all rounded-xl hover:bg-white/10"
                   role="menuitem"
+                  onClick={() => handleNavigation('/')}
                   aria-current={location.pathname === '/' ? 'page' : undefined}
                 >
                   Home
@@ -101,6 +121,7 @@ const Header = () => {
                   to="/about-us" 
                   className="px-4 py-2 text-white/90 hover:text-white transition-all rounded-xl hover:bg-white/10"
                   role="menuitem"
+                  onClick={() => handleNavigation('/about-us')}
                   aria-current={location.pathname === '/about-us' ? 'page' : undefined}
                 >
                   About Us
@@ -109,6 +130,7 @@ const Header = () => {
                   to="/activities" 
                   className="px-4 py-2 text-white/90 hover:text-white transition-all rounded-xl hover:bg-white/10"
                   role="menuitem"
+                  onClick={() => handleNavigation('/activities')}
                   aria-current={location.pathname === '/activities' ? 'page' : undefined}
                 >
                   Activities
@@ -117,6 +139,7 @@ const Header = () => {
                   to="/gallery" 
                   className="px-4 py-2 text-white/90 hover:text-white transition-all rounded-xl hover:bg-white/10"
                   role="menuitem"
+                  onClick={() => handleNavigation('/gallery')}
                   aria-current={location.pathname === '/gallery' ? 'page' : undefined}
                 >
                   Gallery
@@ -125,6 +148,7 @@ const Header = () => {
                   to="/contact" 
                   className="px-4 py-2 text-white/90 hover:text-white transition-all rounded-xl hover:bg-white/10"
                   role="menuitem"
+                  onClick={() => handleNavigation('/contact')}
                   aria-current={location.pathname === '/contact' ? 'page' : undefined}
                 >
                   Contact
@@ -183,10 +207,14 @@ const Header = () => {
           className="container-custom py-6 flex flex-col space-y-4"
           aria-label="Mobile navigation"
         >
+          {/* Home link in mobile menu - always use button for consistent behavior */}
           <Link 
             to="/" 
             className="px-4 py-3 text-white/90 hover:text-white transition-all rounded-xl hover:bg-white/10 text-lg"
-            onClick={toggleMobileMenu}
+            onClick={() => {
+              toggleMobileMenu();
+              handleNavigation('/');
+            }}
             aria-current={location.pathname === '/' ? 'page' : undefined}
           >
             Home
@@ -194,7 +222,10 @@ const Header = () => {
           <Link 
             to="/about-us" 
             className="px-4 py-3 text-white/90 hover:text-white transition-all rounded-xl hover:bg-white/10 text-lg"
-            onClick={toggleMobileMenu}
+            onClick={() => {
+              toggleMobileMenu();
+              handleNavigation('/about-us');
+            }}
             aria-current={location.pathname === '/about-us' ? 'page' : undefined}
           >
             About Us
@@ -202,7 +233,10 @@ const Header = () => {
           <Link 
             to="/activities" 
             className="px-4 py-3 text-white/90 hover:text-white transition-all rounded-xl hover:bg-white/10 text-lg"
-            onClick={toggleMobileMenu}
+            onClick={() => {
+              toggleMobileMenu();
+              handleNavigation('/activities');
+            }}
             aria-current={location.pathname === '/activities' ? 'page' : undefined}
           >
             Activities
@@ -210,7 +244,10 @@ const Header = () => {
           <Link 
             to="/gallery" 
             className="px-4 py-3 text-white/90 hover:text-white transition-all rounded-xl hover:bg-white/10 text-lg"
-            onClick={toggleMobileMenu}
+            onClick={() => {
+              toggleMobileMenu();
+              handleNavigation('/gallery');
+            }}
             aria-current={location.pathname === '/gallery' ? 'page' : undefined}
           >
             Gallery
@@ -218,7 +255,10 @@ const Header = () => {
           <Link 
             to="/contact" 
             className="px-4 py-3 text-white/90 hover:text-white transition-all rounded-xl hover:bg-white/10 text-lg"
-            onClick={toggleMobileMenu}
+            onClick={() => {
+              toggleMobileMenu();
+              handleNavigation('/contact');
+            }}
             aria-current={location.pathname === '/contact' ? 'page' : undefined}
           >
             Contact
@@ -245,6 +285,6 @@ const Header = () => {
       </div>
     </>
   );
-};
+});
 
 export default Header;

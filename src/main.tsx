@@ -1,3 +1,4 @@
+import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -5,6 +6,20 @@ import './index.css';
 import '@/styles/leaflet.css';
 import { reportWebVitals } from './reportWebVitals';
 import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
+
+// Register service worker for improved performance and offline capabilities
+if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(registration => {
+        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+      })
+      .catch(error => {
+        console.error('ServiceWorker registration failed: ', error);
+      });
+  });
+}
 
 // Add global error handler to catch unhandled exceptions
 window.addEventListener('error', (event) => {
@@ -29,10 +44,12 @@ try {
 
   // Wrap rendering in try-catch
   try {
+    // Use startTransition to prioritize interactive updates
     root.render(
       <ErrorBoundary>
         <App />
-        <Analytics />
+        <Analytics debug={false} />
+        <SpeedInsights sampleRate={25} />
       </ErrorBoundary>
     );
     console.log('App rendered successfully');

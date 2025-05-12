@@ -2,22 +2,39 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import ProtectedRoute from "./components/admin/ProtectedRoute";
+import { lazyLoad, lazyLoadWithSkeleton } from "./utils/lazyLoad";
 
+// Eagerly load critical routes for best performance
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
-import Gallery from "./pages/Gallery";
-import AboutUs from "./pages/AboutUs";
-import Activities from "./pages/Activities";
-import Contact from "./pages/Contact";
 
-import AdminLogin from "./pages/Admin/Login";
-import AdminDashboard from "./pages/Admin/Dashboard";
-import GalleryAdmin from "./pages/Admin/Gallery";
-import ActivitiesAdmin from "./pages/Admin/Activities";
-import EventsAdmin from "./pages/Admin/Events";
+// Lazy load non-critical routes to reduce initial bundle size
+import { lazy } from 'react';
+
+const LoadingFallback = () => <div className="h-screen w-full flex items-center justify-center"><div className="animate-pulse rounded-xl bg-muted h-12 w-12"></div></div>;
+
+// Lazy load non-critical routes
+const Gallery = lazy(() => import("./pages/Gallery"));
+const AboutUs = lazy(() => import("./pages/AboutUs"));
+const Activities = lazy(() => import("./pages/Activities"));
+const Contact = lazy(() => import("./pages/Contact"));
+
+// Lazy load admin routes which are rarely accessed by most users
+const AdminLogin = lazy(() => import("./pages/Admin/Login"));
+const AdminDashboard = lazy(() => import("./pages/Admin/Dashboard"));
+const GalleryAdmin = lazy(() => import("./pages/Admin/Gallery"));
+const ActivitiesAdmin = lazy(() => import("./pages/Admin/Activities"));
+const EventsAdmin = lazy(() => import("./pages/Admin/Events"));
+
+// Simple function to scroll to top of page
+function scrollToTop() {
+  window.scrollTo(0, 0);
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0; // For Safari
+}
 
 const AppRoutes = () => {
   const location = useLocation();
@@ -28,16 +45,19 @@ const AppRoutes = () => {
     document.title = isAdminRoute 
       ? 'Admin Panel | Abbaquar-San Dream Centre' 
       : 'Abbaquar-San Dream Centre';
+    
+    // Scroll to top on route change
+    scrollToTop();
   }, [location.pathname]);
 
   return (
     <Routes>
       {/* Public Routes */}
       <Route path="/" element={<Index />} />
-      <Route path="/gallery" element={<Gallery />} />
-      <Route path="/about-us" element={<AboutUs />} />
-      <Route path="/activities" element={<Activities />} />
-      <Route path="/contact" element={<Contact />} />
+      <Route path="/gallery" element={<Suspense fallback={<LoadingFallback />}><Gallery /></Suspense>} />
+      <Route path="/about-us" element={<Suspense fallback={<LoadingFallback />}><AboutUs /></Suspense>} />
+      <Route path="/activities" element={<Suspense fallback={<LoadingFallback />}><Activities /></Suspense>} />
+      <Route path="/contact" element={<Suspense fallback={<LoadingFallback />}><Contact /></Suspense>} />
       
       {/* Admin Routes */}
       <Route path="/login" element={<Navigate to="/login/dashboard" replace />} />
@@ -46,7 +66,9 @@ const AppRoutes = () => {
         path="/login/dashboard" 
         element={
           <ProtectedRoute>
-            <AdminDashboard />
+            <Suspense fallback={<LoadingFallback />}>
+              <AdminDashboard />
+            </Suspense>
           </ProtectedRoute>
         } 
       />
@@ -54,7 +76,9 @@ const AppRoutes = () => {
         path="/login/gallery" 
         element={
           <ProtectedRoute>
-            <GalleryAdmin />
+            <Suspense fallback={<LoadingFallback />}>
+              <GalleryAdmin />
+            </Suspense>
           </ProtectedRoute>
         } 
       />
@@ -62,7 +86,9 @@ const AppRoutes = () => {
         path="/login/activities" 
         element={
           <ProtectedRoute>
-            <ActivitiesAdmin />
+            <Suspense fallback={<LoadingFallback />}>
+              <ActivitiesAdmin />
+            </Suspense>
           </ProtectedRoute>
         } 
       />
@@ -70,7 +96,9 @@ const AppRoutes = () => {
         path="/login/events" 
         element={
           <ProtectedRoute>
-            <EventsAdmin />
+            <Suspense fallback={<LoadingFallback />}>
+              <EventsAdmin />
+            </Suspense>
           </ProtectedRoute>
         } 
       />

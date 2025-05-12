@@ -1,43 +1,58 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { LoadingSpinner } from './loading-spinner';
+import useOptimizedImage from '@/hooks/use-optimized-image';
 
 interface OptimizedImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   fallbackSrc?: string;
+  priority?: boolean;
+  sizes?: string;
 }
 
+/**
+ * OptimizedImage component for better Core Web Vitals
+ * Improves LCP (Largest Contentful Paint) and CLS (Cumulative Layout Shift)
+ * by properly handling image loading and providing visual feedback
+ */
 export function OptimizedImage({
   src,
   alt,
   className = '',
   fallbackSrc = '/placeholder.svg',
+  priority = false,
+  sizes,
+  width,
+  height,
   ...props
 }: OptimizedImageProps) {
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(false);
+  // Use our custom hook for optimized image loading
+  const { imageProps, isLoaded, error } = useOptimizedImage({
+    src: src || '',
+    fallbackSrc,
+    priority,
+  });
 
-  const handleLoad = () => {
-    setIsLoading(false);
-  };
-
-  const handleError = () => {
-    setIsLoading(false);
-    setError(true);
-  };
+  // Determine if we should show the loading spinner
+  const showSpinner = !isLoaded && !error;
 
   return (
-    <div className="relative">
-      {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+    <div className="relative" style={{ aspectRatio: width && height ? `${width}/${height}` : undefined }}>
+      {showSpinner && (
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded">
           <LoadingSpinner size="sm" />
         </div>
       )}
       <img
-        src={error ? fallbackSrc : src}
+        src={imageProps.src}
         alt={alt}
-        className={`${className} ${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
-        onLoad={handleLoad}
-        onError={handleError}
-        loading="lazy"
+        className={`${className} ${imageProps.className}`}
+        width={width}
+        height={height}
+        sizes={sizes}
+        loading={imageProps.loading as 'eager' | 'lazy'}
+        decoding={imageProps.decoding}
+        fetchPriority={imageProps.fetchPriority as 'high' | 'low' | 'auto'}
+        onLoad={imageProps.onLoad}
+        onError={imageProps.onError}
         {...props}
       />
     </div>

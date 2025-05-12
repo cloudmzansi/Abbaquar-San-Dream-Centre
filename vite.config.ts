@@ -1,10 +1,20 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
+import { visualizer } from 'rollup-plugin-visualizer';
 
 // https://vitejs.dev/config/
-export default defineConfig({
-  plugins: [react()],
+// https://vitejs.dev/config/
+export default defineConfig(({ command }) => ({
+  plugins: [
+    react(),
+    // Add bundle visualizer in build mode
+    command === 'build' && visualizer({
+      open: false,
+      gzipSize: true,
+      brotliSize: true,
+    }),
+  ].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
@@ -17,6 +27,10 @@ export default defineConfig({
     cssMinify: true,
     rollupOptions: {
       output: {
+        // Use hashed filenames for better caching
+        entryFileNames: 'assets/[name].[hash].js',
+        chunkFileNames: 'assets/[name].[hash].js',
+        assetFileNames: 'assets/[name].[hash].[ext]',
         manualChunks: {
           // Split vendor chunks for better caching
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
@@ -28,6 +42,10 @@ export default defineConfig({
     // Improve chunk loading strategy
     chunkSizeWarningLimit: 1000,
     sourcemap: false,
+    // Enable additional optimizations
+    assetsInlineLimit: 4096, // Inline small assets
+    modulePreload: true,
+    reportCompressedSize: true,
   },
   test: {
     environment: 'jsdom',
@@ -46,4 +64,4 @@ export default defineConfig({
       ]
     }
   }
-});
+}));

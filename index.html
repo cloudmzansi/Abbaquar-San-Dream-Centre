@@ -2,21 +2,41 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/assets/abbaquar-logo.webp" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#083060" />
+    <meta name="color-scheme" content="light" />
+    <link rel="icon" type="image/webp" href="/assets/abbaquar-logo.webp" />
+    <link rel="apple-touch-icon" href="/assets/abbaquar-logo.webp" />
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- DNS prefetching for external resources -->
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+    
+    <!-- Primary Meta Tags -->
     <title>Abbaquar-San Dream Centre</title>
     <meta name="description" content="Abbaquar-San Dream Centre - A cultural organization geared towards assisting, uplifting and rebuilding our community." />
     <meta name="author" content="Abbaquar" />
 
+    <!-- Open Graph / Facebook -->
     <meta property="og:title" content="Abbaquar-San Dream Centre" />
     <meta property="og:description" content="A cultural organization geared towards assisting, uplifting and rebuilding our community." />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="/assets/hero.webp" />
+    
+    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Abbaquar-San Dream Centre" />
     <meta name="twitter:description" content="A cultural organization geared towards assisting, uplifting and rebuilding our community." />
     <meta name="twitter:image" content="/assets/hero.webp" />
-    <link rel="preload" as="image" href="/assets/hero.webp" />
+    
+    <!-- Preload critical assets -->
+    <link rel="preload" as="image" href="/assets/hero.webp" fetchpriority="high" />
+    <link rel="preload" as="image" href="/assets/abbaquar-logo.webp" fetchpriority="high" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+    
+    <!-- Preload CSS -->
+    <link rel="preload" href="/src/index.css" as="style" />
   </head>
 
   <body>
