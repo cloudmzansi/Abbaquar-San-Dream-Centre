@@ -37,8 +37,11 @@ self.addEventListener('activate', (event) => {
 
 // Fetch event - serve from cache, fallback to network
 self.addEventListener('fetch', (event) => {
-  // Skip cross-origin requests
-  if (event.request.url.startsWith(self.location.origin)) {
+  // Skip cross-origin requests and non-GET requests
+  if (
+    event.request.url.startsWith(self.location.origin) && 
+    event.request.method === 'GET'
+  ) {
     event.respondWith(
       caches.match(event.request).then((cachedResponse) => {
         if (cachedResponse) {
@@ -49,8 +52,13 @@ self.addEventListener('fetch', (event) => {
           return fetch(event.request).then((response) => {
             // Cache valid responses
             if (response.status === 200) {
-              // Don't cache API responses
-              if (!event.request.url.includes('/api/')) {
+              // Don't cache API responses or other non-cacheable content
+              if (
+                !event.request.url.includes('/api/') && 
+                !event.request.url.includes('/login/') &&
+                !event.request.url.includes('/admin/')
+              ) {
+                // Clone the response before using it
                 cache.put(event.request, response.clone());
               }
             }
@@ -62,10 +70,10 @@ self.addEventListener('fetch', (event) => {
   }
 });
 
-// Handle offline fallbacks
+// Handle offline fallbacks for navigation
 self.addEventListener('fetch', (event) => {
-  // Return cached assets or a fallback for navigation requests
-  if (event.request.mode === 'navigate') {
+  // Only handle GET navigation requests
+  if (event.request.mode === 'navigate' && event.request.method === 'GET') {
     event.respondWith(
       fetch(event.request).catch(() => {
         return caches.match('/index.html');
