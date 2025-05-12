@@ -82,7 +82,7 @@ const Donate = () => {
   return (
     <>
       <span id="donate" className="block h-0 w-0 -mt-24" aria-hidden="true"></span>
-      <section className="py-16 md:py-24 bg-gray-50">
+      <section className="py-16 pt-24 md:py-24 bg-gray-50">
         <div className="container-custom">
           <div className="text-center mb-16">
             <span className="text-[#D72660] font-semibold mb-4 block">Make a Difference</span>

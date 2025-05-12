@@ -27,7 +27,7 @@ const About = () => {
                 We offer various activities for the youth, namely Ballet, Karate, Dance, Music lessons and a Youth programme.
               </p>
             </div>
-            <div className="pt-4">
+            <div className="pt-4 pb-6 md:pb-0">
               <a 
                 href="/about-us" 
                 className="inline-flex items-center px-8 py-3 text-lg font-semibold text-white bg-[#D72660] rounded-xl hover:bg-opacity-90 transition-all transform hover:scale-105"
