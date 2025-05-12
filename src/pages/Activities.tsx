@@ -8,7 +8,7 @@ const ActivitiesPage = () => {
       <Header />
       <main className="flex-grow" aria-label="main content">
         {/* Hero Section */}
-        <section aria-labelledby="activities-hero-title" className="bg-[#073366] text-white py-20 mt-[88px]">
+        <section aria-labelledby="activities-hero-title" className="bg-[#073366] text-white py-24 pt-32">
           <div className="container-custom">
             <h1 id="activities-hero-title" className="text-4xl md:text-5xl font-bold mb-6 text-center">Our Activities</h1>
             <p className="text-xl text-center max-w-3xl mx-auto">

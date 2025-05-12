@@ -40,7 +40,7 @@ const Gallery = () => {
       <Header />
       <main className="flex-grow">
         {/* Hero Section */}
-        <section aria-labelledby="gallery-hero-title" className="bg-[#073366] text-white py-20 mt-[88px]">
+        <section aria-labelledby="gallery-hero-title" className="bg-[#073366] text-white py-24 pt-32">
           <div className="container-custom">
             <h1 id="gallery-hero-title" className="text-4xl md:text-5xl font-bold mb-6 text-center">Gallery</h1>
             <p className="text-xl text-center max-w-3xl mx-auto">
@@ -52,12 +52,12 @@ const Gallery = () => {
         {/* Gallery Content */}
         <section aria-labelledby="gallery-content-title" className="py-16 bg-gray-50">
           <div className="container-custom">
-            <div className="flex justify-center mb-8 gap-4">
+            <div className="flex flex-wrap justify-center mb-8 gap-2 px-2">
               {categories.map(cat => (
                 <button
                   key={cat}
                   aria-label={`Filter gallery by ${cat}`}
-                  className={`px-4 py-2 rounded-full font-semibold ${filter === cat ? 'bg-[#073366] text-white' : 'bg-white text-[#073366] border border-[#073366]'}`}
+                  className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-full font-semibold text-sm sm:text-base ${filter === cat ? 'bg-[#073366] text-white' : 'bg-white text-[#073366] border border-[#073366]'}`}
                   onClick={() => setFilter(cat)}
                 >
                   {cat}
@@ -74,7 +74,7 @@ const Gallery = () => {
                 <p>{error}</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
                 {filteredPhotos.length === 0 ? (
                   <div className="col-span-full text-center text-gray-500">No images found.</div>
                 ) : (
@@ -83,7 +83,7 @@ const Gallery = () => {
                       <img 
                         src={photo.image_path} 
                         alt={photo.alt_text || `${photo.category} photo`} 
-                        className="w-full h-64 object-cover" 
+                        className="w-full h-48 md:h-64 object-cover" 
                         width="384"
                         height="256"
                         onError={(e) => {
@@ -91,8 +91,8 @@ const Gallery = () => {
                         }} 
                       />
                       {photo.title && (
-                        <div className="p-4">
-                          <h3 className="text-lg font-medium text-[#073366]">{photo.title}</h3>
+                        <div className="p-3 md:p-4">
+                          <h3 className="text-base md:text-lg font-medium text-[#073366]">{photo.title}</h3>
                         </div>
                       )}
                     </div>

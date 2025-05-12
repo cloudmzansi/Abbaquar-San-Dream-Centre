@@ -10,7 +10,7 @@ const Contact = () => {
       <Header />
       <main className="flex-grow">
         {/* Hero Section */}
-        <section aria-labelledby="contact-hero-title" className="bg-[#073366] py-20 mt-[88px]" role="banner">
+        <section aria-labelledby="contact-hero-title" className="bg-[#073366] py-24 pt-32" role="banner">
           <div className="container-custom">
             <h1 id="contact-hero-title" className="text-[#F5F5F0] text-4xl md:text-5xl font-bold mb-6 text-center">Contact Us</h1>
             <p className="text-[#E0E9FF] text-xl text-center max-w-3xl mx-auto">
