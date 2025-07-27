@@ -3,6 +3,7 @@ import { Mail } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { ContactFormData } from '@/types';
 import { LoadingSpinner } from './ui/loading-spinner';
+import { useFormTracking } from '@/hooks/use-analytics';
 
 interface FormErrors {
   name?: string;
@@ -22,6 +23,7 @@ const HomeContactForm: React.FC<HomeContactFormProps> = ({ showContainer = true 
   const [submitStatus, setSubmitStatus] = useState<{ success: boolean; message: string } | null>(null);
   const [errors, setErrors] = useState<FormErrors>({});
   const { toast } = useToast();
+  const { handleSubmit: trackFormSubmit } = useFormTracking('contact', 'home_contact_form');
   const [formData, setFormData] = useState<ContactFormData>({
     name: '',
     email: '',
@@ -63,6 +65,9 @@ const HomeContactForm: React.FC<HomeContactFormProps> = ({ showContainer = true 
     setIsSubmitting(true);
     setSubmitStatus(null);
 
+    // Track form submission
+    trackFormSubmit();
+
     try {
       // Prepare data for Web3Forms
       const formPayload = {
@@ -86,6 +91,32 @@ const HomeContactForm: React.FC<HomeContactFormProps> = ({ showContainer = true 
       });
 
       const result = await response.json();
+      
+      // Also save to database for admin management
+      try {
+        const { supabase } = await import('@/lib/supabase');
+        const { data, error } = await supabase.from('contact_messages').insert({
+          name: formData.name,
+          email: formData.email,
+          subject: formData.subject || 'New contact form submission',
+          message: formData.message,
+          status: 'new'
+        });
+        
+        if (error) {
+          console.error('Database insert error:', error);
+          console.error('Error details:', {
+            message: error.message,
+            details: error.details,
+            hint: error.hint
+          });
+        } else {
+          console.log('Message saved to database successfully:', data);
+        }
+      } catch (dbError) {
+        console.error('Failed to save message to database:', dbError);
+        // Don't fail the form submission if database save fails
+      }
       
       if (result.success) {
         // Reset form on success

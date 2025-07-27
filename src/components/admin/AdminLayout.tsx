@@ -1,6 +1,6 @@
 import { ReactNode, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Image, FileImage, Calendar, Home, LogOut, Menu, X } from 'lucide-react';
+import { Image, FileImage, Calendar, Home, LogOut, Menu, X, Mail, Database, BarChart3 } from 'lucide-react';
 import { signOut } from '@/lib/authService';
 
 interface AdminLayoutProps {
@@ -30,6 +30,9 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
     { icon: Image, label: 'Gallery', path: '/login/gallery' },
     { icon: FileImage, label: 'Activities', path: '/login/activities' },
     { icon: Calendar, label: 'Events', path: '/login/events' },
+    { icon: Mail, label: 'Messages', path: '/login/messages' },
+    { icon: BarChart3, label: 'Analytics', path: '/login/analytics' },
+    { icon: Database, label: 'Backup', path: '/login/backup' },
   ];
 
   return (

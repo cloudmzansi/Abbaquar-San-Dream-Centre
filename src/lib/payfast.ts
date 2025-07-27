@@ -48,7 +48,10 @@ export class PayFastService {
     // Add optional URLs if provided - ensure they're properly formatted
     if (params.returnUrl) paymentData.return_url = params.returnUrl.trim();
     if (params.cancelUrl) paymentData.cancel_url = params.cancelUrl.trim();
-    if (params.notifyUrl) paymentData.notify_url = params.notifyUrl.trim();
+    
+    // Add ITN URL for donation tracking
+    const baseUrl = import.meta.env.VITE_BASE_URL || 'https://your-domain.com';
+    paymentData.notify_url = `${baseUrl}/api/payfast-itn`;
     
     // Add PayFast required fields
     // These are required according to PayFast documentation

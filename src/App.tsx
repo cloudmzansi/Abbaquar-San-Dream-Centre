@@ -6,6 +6,8 @@ import { useEffect, Suspense } from 'react';
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import ProtectedRoute from "./components/admin/ProtectedRoute";
 import { lazyLoad, lazyLoadWithSkeleton } from "./utils/lazyLoad";
+import { useAnalytics } from "./hooks/use-analytics";
+import AnalyticsTracker from "./components/AnalyticsTracker";
 
 // Eagerly load critical routes for best performance
 import Index from "./pages/Index";
@@ -28,6 +30,9 @@ const AdminDashboard = lazy(() => import("./pages/Admin/Dashboard"));
 const GalleryAdmin = lazy(() => import("./pages/Admin/Gallery"));
 const ActivitiesAdmin = lazy(() => import("./pages/Admin/Activities"));
 const EventsAdmin = lazy(() => import("./pages/Admin/Events"));
+const ContactMessages = lazy(() => import("./pages/Admin/ContactMessages"));
+const Analytics = lazy(() => import("./pages/Admin/Analytics"));
+const BackupExport = lazy(() => import("./pages/Admin/BackupExport"));
 
 // Simple function to scroll to top of page
 function scrollToTop() {
@@ -38,6 +43,7 @@ function scrollToTop() {
 
 const AppRoutes = () => {
   const location = useLocation();
+  const analytics = useAnalytics(); // Initialize analytics tracking
 
   useEffect(() => {
     // Set appropriate title based on route
@@ -102,6 +108,36 @@ const AppRoutes = () => {
           </ProtectedRoute>
         } 
       />
+      <Route 
+        path="/login/messages" 
+        element={
+          <ProtectedRoute>
+            <Suspense fallback={<LoadingFallback />}>
+              <ContactMessages />
+            </Suspense>
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/login/analytics" 
+        element={
+          <ProtectedRoute>
+            <Suspense fallback={<LoadingFallback />}>
+              <Analytics />
+            </Suspense>
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/login/backup" 
+        element={
+          <ProtectedRoute>
+            <Suspense fallback={<LoadingFallback />}>
+              <BackupExport />
+            </Suspense>
+          </ProtectedRoute>
+        } 
+      />
       
       {/* Legacy admin routes - redirect to new paths */}
       <Route path="/admin" element={<Navigate to="/login" replace />} />
@@ -124,7 +160,9 @@ const App = () => {
       <Sonner />
       <SpeedInsights />
       <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        <AppRoutes />
+        <AnalyticsTracker>
+          <AppRoutes />
+        </AnalyticsTracker>
       </BrowserRouter>
     </TooltipProvider>
   );
