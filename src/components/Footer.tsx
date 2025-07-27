@@ -167,7 +167,13 @@ const Footer = () => {
 
         <div className="border-t border-white/20 mt-8 pt-6">
           <p className="text-center text-gray-300">
-            <small>Copyright © {new Date().getFullYear()} Abbaquar - San Dream Centre. All Rights Reserved.</small>
+            <small>
+              Copyright © {new Date().getFullYear()} Abbaquar - San Dream Centre. All Rights Reserved.
+            </small>
+            <br />
+            <small>
+              Made with <span role="img" aria-label="green heart" style={{color: '#27ae60', fontSize: '1em', verticalAlign: 'middle'}}>&#128154;</span> by <a href="https://mofi.co.za" target="_blank" rel="noopener noreferrer" className="underline hover:text-white">Cloud Mzansi</a>.
+            </small>
           </p>
         </div>
       </div>
