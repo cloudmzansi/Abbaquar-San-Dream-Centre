@@ -4,6 +4,7 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination } from 'swiper/modules';
 import { getEvents } from '@/lib/eventsService';
 import { Event } from '@/types/supabase';
+import { format, parseISO } from 'date-fns';
 
 // Import Swiper styles
 import 'swiper/css';
@@ -12,6 +13,19 @@ import './UpcomingEvents.css';
 
 interface UpcomingEventsProps {
   displayOn?: 'home' | 'events' | 'both';
+}
+
+/**
+ * Format a date string as 'DD/MM/YYYY'.
+ * Returns '-' if invalid.
+ */
+function formatEventDate(dateStr?: string): string {
+  if (!dateStr) return '-';
+  try {
+    return format(parseISO(dateStr), 'dd/MM/yyyy');
+  } catch {
+    return '-';
+  }
 }
 
 // Memoize EventCard to prevent unnecessary re-renders
@@ -38,7 +52,7 @@ const EventCard = memo(({ event }: { event: Event }) => {
         <div className="space-y-2">
           <div className="flex items-center text-gray-600">
             <Calendar className="h-4 w-4 mr-2" />
-            <span className="text-sm">{event.date}</span>
+            <span className="text-sm">{formatEventDate(event.date)}</span>
           </div>
           <div className="flex items-center text-gray-600">
             <Clock className="h-4 w-4 mr-2" />

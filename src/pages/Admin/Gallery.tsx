@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { getGalleryImages, uploadGalleryImage, deleteGalleryImage } from '@/lib/galleryService';
 import { GalleryImage } from '@/types/supabase';
-import { Trash2, Upload, Image, Loader, CheckSquare, Bug, AlertTriangle, X } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { Trash2, Upload, Image, Loader, CheckSquare } from 'lucide-react';
 
 const GalleryAdmin = () => {
   const [images, setImages] = useState<GalleryImage[]>([]);
@@ -118,33 +117,34 @@ const GalleryAdmin = () => {
 
   return (
     <AdminLayout>
-      <div className="space-y-4 sm:space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <h1 id="gallery-title" className="text-2xl sm:text-3xl font-bold text-white">Gallery Management</h1>
-          <div className="flex flex-wrap gap-2">
-            {selectedImages.length > 0 && (
-              <button
-                aria-label="Delete selected images"
-                onClick={handleBulkDelete}
-                className="flex items-center px-3 py-1.5 sm:px-4 sm:py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm w-full sm:w-auto justify-center"
-              >
-                <Trash2 size={16} className="mr-1.5" />
-                Delete Selected ({selectedImages.length})
-              </button>
-            )}
+      <div className="space-y-8">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-white">Gallery</h1>
+            <p className="mt-1 text-white/70">Manage your gallery images</p>
           </div>
+          {selectedImages.length > 0 && (
+            <button
+              onClick={handleBulkDelete}
+              className="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            >
+              <Trash2 size={16} className="mr-2" />
+              Delete Selected ({selectedImages.length})
+            </button>
+          )}
         </div>
 
         {/* Upload Form */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-lg shadow border border-white/20 p-3 sm:p-6">
-          <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-white">Upload Image</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-[#1a365d] rounded-xl p-6 border border-white/10">
+          <h2 className="text-xl font-semibold mb-4 text-white">Upload New Image</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <div>
-              <label className="block text-white text-xs sm:text-sm font-medium mb-1 sm:mb-2">Category</label>
+              <label className="block text-white text-sm font-medium mb-2">Category</label>
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value as 'events' | 'activities' | 'community')}
-                className="w-full px-2 py-1.5 sm:px-3 sm:py-2 bg-white/10 border border-white/20 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#4f7df9]/50"
+                className="w-full px-3 py-2 bg-[#0c2342] border border-white/20 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#4f7df9]/50"
               >
                 <option value="events">Events</option>
                 <option value="activities">Activities</option>
@@ -152,74 +152,74 @@ const GalleryAdmin = () => {
               </select>
             </div>
             <div>
-              <label className="block text-white text-xs sm:text-sm font-medium mb-1 sm:mb-2">Image Title (Optional)</label>
+              <label className="block text-white text-sm font-medium mb-2">Title (Optional)</label>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full px-2 py-1.5 sm:px-3 sm:py-2 bg-white/10 border border-white/20 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#4f7df9]/50"
+                className="w-full px-3 py-2 bg-[#0c2342] border border-white/20 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#4f7df9]/50"
                 placeholder="Image title"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-white/80 mb-1">Alt Text (Optional)</label>
+              <label className="block text-white text-sm font-medium mb-2">Alt Text (Optional)</label>
               <input
                 type="text"
                 value={altText}
                 onChange={(e) => setAltText(e.target.value)}
-                placeholder="Describe the image for accessibility"
-                className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white placeholder:text-white/50"
+                placeholder="Describe the image"
+                className="w-full px-3 py-2 bg-[#0c2342] border border-white/20 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#4f7df9]/50"
               />
             </div>
           </div>
-          <div className="mt-4">
-            <div className="md:col-span-2">
-              <label className="block text-white text-xs sm:text-sm font-medium mb-1 sm:mb-2">Image File</label>
-              <div className="flex items-center justify-center w-full">
-                <label className="flex flex-col items-center justify-center w-full h-24 sm:h-32 border-2 border-white/20 border-dashed rounded-lg cursor-pointer bg-white/5 hover:bg-white/10">
-                  <div className="flex flex-col items-center justify-center pt-4 pb-4 sm:pt-5 sm:pb-6">
-                    <Upload className="w-6 h-6 sm:w-8 sm:h-8 mb-2 sm:mb-3 text-white/70" />
-                    <p className="mb-1 sm:mb-2 text-xs sm:text-sm text-white/70">Click to upload</p>
-                    <p className="text-xs text-white/50">PNG, JPG or WEBP</p>
-                  </div>
-                  <input 
-                    type="file" 
-                    className="hidden" 
-                    onChange={handleFileUpload}
-                    accept="image/png, image/jpeg, image/webp"
-                  />
-                </label>
-              </div>
+          
+          <div>
+            <label className="block text-white text-sm font-medium mb-2">Select Image</label>
+            <div className="flex items-center justify-center w-full">
+              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-white/20 border-dashed rounded-lg cursor-pointer bg-[#0c2342] hover:bg-[#0c2342]/80 transition-colors">
+                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                  <Upload className="w-8 h-8 mb-3 text-white/70" />
+                  <p className="mb-2 text-sm text-white/70">Click to upload</p>
+                  <p className="text-xs text-white/50">PNG, JPG or WEBP</p>
+                </div>
+                <input 
+                  type="file" 
+                  className="hidden" 
+                  onChange={handleFileUpload}
+                  accept="image/png, image/jpeg, image/webp"
+                />
+              </label>
             </div>
           </div>
+          
           {isUploading && (
-            <div className="mt-2 flex items-center text-sm text-amber-600">
+            <div className="mt-3 flex items-center text-sm text-amber-400">
               <Loader className="w-4 h-4 mr-2 animate-spin" />
               <span>Uploading image...</span>
             </div>
           )}
           {uploadError && (
-            <div className="mt-2 text-sm text-red-600">
+            <div className="mt-3 text-sm text-red-400">
               {uploadError}
             </div>
           )}
           {uploadSuccess && (
-            <div className="mt-2 text-sm text-green-600">
+            <div className="mt-3 text-sm text-green-400">
               Image uploaded successfully!
             </div>
           )}
         </div>
 
         {/* Gallery Images */}
-        <section aria-labelledby="gallery-title" className="bg-white/10 backdrop-blur-sm rounded-lg shadow border border-white/20 p-3 sm:p-6">
-          <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-white">Gallery Images</h2>
+        <div className="bg-[#1a365d] rounded-xl p-6 border border-white/10">
+          <h2 className="text-xl font-semibold mb-4 text-white">Your Images</h2>
           
           {isLoading ? (
             <div className="flex justify-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#4f7df9]"></div>
             </div>
           ) : error ? (
-            <div className="bg-red-50 p-4 rounded-xl text-red-600">
+            <div className="bg-red-500/20 border border-red-500/30 p-4 rounded-lg text-red-400">
               {error}
             </div>
           ) : images.length === 0 ? (
@@ -228,11 +228,11 @@ const GalleryAdmin = () => {
               <p>No images found. Upload your first image!</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {images.map(image => (
                 <div 
                   key={image.id} 
-                  className={`bg-white/10 rounded-lg overflow-hidden relative group border cursor-pointer ${selectedImages.includes(image.id) ? 'border-[#4f7df9] ring-2 ring-[#4f7df9]/50' : 'border-white/20'}`}
+                  className={`bg-[#0c2342] rounded-lg overflow-hidden relative group border cursor-pointer transition-all ${selectedImages.includes(image.id) ? 'border-[#4f7df9] ring-2 ring-[#4f7df9]/50' : 'border-white/20'}`}
                   onClick={() => toggleSelection(image.id)}
                 >
                   <img 
@@ -248,7 +248,7 @@ const GalleryAdmin = () => {
                       {image.category}
                     </span>
                     {image.title && (
-                      <p className="mt-2 text-sm font-medium">{image.title}</p>
+                      <p className="mt-2 text-sm font-medium text-white">{image.title}</p>
                     )}
                   </div>
                   
@@ -261,9 +261,8 @@ const GalleryAdmin = () => {
                   
                   {/* Trash button */}
                   <button
-                    aria-label="Delete image"
                     onClick={(e) => {
-                      e.stopPropagation(); // Prevent triggering selection
+                      e.stopPropagation();
                       handleDelete(image.id);
                     }}
                     className="absolute right-2 bottom-2 bg-red-500 text-white p-1.5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
@@ -275,7 +274,7 @@ const GalleryAdmin = () => {
               ))}
             </div>
           )}
-        </section>
+        </div>
       </div>
     </AdminLayout>
   );

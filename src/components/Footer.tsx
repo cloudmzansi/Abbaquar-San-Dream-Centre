@@ -165,7 +165,27 @@ const Footer = () => {
           </div>
         </div>
 
+        {/* Registration Numbers */}
         <div className="border-t border-white/20 mt-8 pt-6">
+          <div className="text-center mb-4">
+            <div className="flex flex-wrap justify-center gap-6 text-gray-300 text-sm">
+              <div>
+                <span>NPO Number:</span>
+                <span className="ml-1">xxx</span>
+              </div>
+              <div>
+                <span>Registration Number:</span>
+                <span className="ml-1">xxx</span>
+              </div>
+              <div>
+                <span>PBO Number:</span>
+                <span className="ml-1">xxx</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="border-t border-white/20 mt-4 pt-6">
           <p className="text-center text-gray-300">
             <small>
               Copyright © {new Date().getFullYear()} Abbaquar - San Dream Centre. All Rights Reserved.

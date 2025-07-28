@@ -28,6 +28,10 @@ export interface Event {
   description: string;
   image_path?: string;
   display_on: 'home' | 'events' | 'both';
+  publish_at?: string; // When the event should become visible (SAST timezone)
+  is_archived?: boolean; // Whether the event has been moved to past events
+  archived_at?: string; // When the event was archived
+  status?: 'draft' | 'published' | 'archived'; // Current status
 }
 
 export interface Database {

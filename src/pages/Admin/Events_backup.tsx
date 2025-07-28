@@ -1,16 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
-import { 
-  getEvents, 
-  createEvent, 
-  updateEvent, 
-  deleteEvent, 
-  getAllEventsForAdmin, 
-  getArchivedEvents, 
-  archiveEvent, 
-  unarchiveEvent,
-  runScheduledTasks 
-} from '@/lib/eventsService';
+import { getEvents, createEvent, updateEvent, deleteEvent } from '@/lib/eventsService';
 import { Event } from '@/types/supabase';
 import { supabase } from '@/lib/supabase';
 import { 
@@ -30,6 +20,8 @@ import {
   Eye,
   EyeOff,
   Calendar as CalendarIcon,
+  Home,
+  CalendarDays,
   ArrowUpDown,
   MoreVertical,
   CheckCircle,
@@ -56,7 +48,7 @@ function formatEventDate(dateStr?: string): string {
  * Format a time range as '18:00 to 20:00'. Handles missing/invalid times.
  */
 function formatEventTimeRange(start?: string, end?: string): string {
-  if (!start && !end) return '--:--';
+  if (!start && !end) return '—';
   const parseTime = (t?: string) => {
     if (!t) return '';
     if (/^\d{2}:\d{2}$/.test(t)) return t;
@@ -72,19 +64,19 @@ function formatEventTimeRange(start?: string, end?: string): string {
   if (s && e) return `${s} to ${e}`;
   if (s) return s;
   if (e) return e;
-  return '--:--';
+  return '—';
 }
 
-// Super Ultimate Working Date Input Component
+// New Fixed Date Input Component
 const DateInput = ({ value, onChange, className, ...props }: {
   value: string;
   onChange: (value: string) => void;
   className?: string;
   [key: string]: any;
 }) => {
-  const [day, setDay] = useState('');
-  const [month, setMonth] = useState('');
   const [year, setYear] = useState('');
+  const [month, setMonth] = useState('');
+  const [day, setDay] = useState('');
 
   // Initialize from value
   useEffect(() => {
@@ -103,54 +95,53 @@ const DateInput = ({ value, onChange, className, ...props }: {
     }
   }, [value]);
 
-  const updateDate = (newDay: string, newMonth: string, newYear: string) => {
-    let dateStr = '';
+  const updateDate = (newYear: string, newMonth: string, newDay: string) => {
+    // Only update if we have at least a year
     if (newYear) {
-      dateStr = newYear;
-      if (newMonth) {
-        dateStr += `-${newMonth}`;
-        if (newDay) {
-          dateStr += `-${newDay}`;
-        } else {
-          dateStr += '-';
-        }
-      } else {
-        dateStr += '-';
-      }
+      const yearStr = newYear;
+      const monthStr = newMonth || '01';
+      const dayStr = newDay || '01';
+      onChange(`${yearStr}-${monthStr}-${dayStr}`);
+    } else {
+      onChange('');
     }
-    onChange(dateStr);
-  };
-
-  const handleDayChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value.replace(/\D/g, ''); // Only allow digits
-    setDay(val);
-    if (val.length === 2) {
-      // Auto-advance to month after 2 digits
-      const monthInput = e.target.parentElement?.nextElementSibling?.nextElementSibling?.querySelector('input') as HTMLInputElement;
-      if (monthInput) {
-        monthInput.focus();
-      }
-    }
-    updateDate(val, month, year);
-  };
-
-  const handleMonthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value.replace(/\D/g, ''); // Only allow digits
-    setMonth(val);
-    if (val.length === 2) {
-      // Auto-advance to year after 2 digits
-      const yearInput = e.target.parentElement?.nextElementSibling?.nextElementSibling?.querySelector('input') as HTMLInputElement;
-      if (yearInput) {
-        yearInput.focus();
-      }
-    }
-    updateDate(day, val, year);
   };
 
   const handleYearChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value.replace(/\D/g, ''); // Only allow digits
     setYear(val);
-    updateDate(day, month, val);
+    
+    if (val.length === 4) {
+      // Auto-advance to month after 4 digits
+      const monthInput = e.target.parentElement?.nextElementSibling?.nextElementSibling?.querySelector('input') as HTMLInputElement;
+      if (monthInput) {
+        monthInput.focus();
+      }
+    }
+    
+    updateDate(val, month, day);
+  };
+
+  const handleMonthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value.replace(/\D/g, ''); // Only allow digits
+    setMonth(val);
+    
+    if (val.length === 2) {
+      // Auto-advance to day after 2 digits
+      const dayInput = e.target.parentElement?.nextElementSibling?.nextElementSibling?.querySelector('input') as HTMLInputElement;
+      if (dayInput) {
+        dayInput.focus();
+      }
+    }
+    
+    updateDate(year, val, day);
+  };
+
+  const handleDayChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value.replace(/\D/g, ''); // Only allow digits
+    setDay(val);
+    
+    updateDate(year, month, val);
   };
 
   return (
@@ -158,10 +149,10 @@ const DateInput = ({ value, onChange, className, ...props }: {
       <div className="flex-1">
         <input
           type="text"
-          placeholder="DD"
-          value={day}
-          onChange={handleDayChange}
-          maxLength={2}
+          placeholder="YYYY"
+          value={year}
+          onChange={handleYearChange}
+          maxLength={4}
           className="w-full px-2 py-2 bg-white/10 border border-white/20 rounded-md text-white text-center focus:outline-none focus:ring-2 focus:ring-[#4f7df9]/50"
         />
       </div>
@@ -180,123 +171,12 @@ const DateInput = ({ value, onChange, className, ...props }: {
       <div className="flex-1">
         <input
           type="text"
-          placeholder="YYYY"
-          value={year}
-          onChange={handleYearChange}
-          maxLength={4}
-          className="w-full px-2 py-2 bg-white/10 border border-white/20 rounded-md text-white text-center focus:outline-none focus:ring-2 focus:ring-[#4f7df9]/50"
-        />
-      </div>
-    </div>
-  );
-};
-
-// Custom DateTime Input Component (matches the styling of DateInput and time inputs)
-const DateTimeInput = ({ value, onChange, className, ...props }: {
-  value: string;
-  onChange: (value: string) => void;
-  className?: string;
-  [key: string]: any;
-}) => {
-  const [day, setDay] = useState('');
-  const [month, setMonth] = useState('');
-  const [year, setYear] = useState('');
-  const [time, setTime] = useState('');
-
-  // Parse the datetime value
-  useEffect(() => {
-    if (value) {
-      const date = new Date(value);
-      setDay(date.getDate().toString().padStart(2, '0'));
-      setMonth((date.getMonth() + 1).toString().padStart(2, '0'));
-      setYear(date.getFullYear().toString());
-      setTime(date.toTimeString().slice(0, 5)); // HH:MM format
-    } else {
-      setDay('');
-      setMonth('');
-      setYear('');
-      setTime('');
-    }
-  }, [value]);
-
-  // Update the parent value when any part changes
-  const updateDateTime = (newDay: string, newMonth: string, newYear: string, newTime: string) => {
-    if (newDay && newMonth && newYear && newTime) {
-      const dateStr = `${newYear}-${newMonth}-${newDay}T${newTime}`;
-      onChange(dateStr);
-    } else {
-      onChange('');
-    }
-  };
-
-  const handleDayChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newDay = e.target.value;
-    setDay(newDay);
-    updateDateTime(newDay, month, year, time);
-  };
-
-  const handleMonthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newMonth = e.target.value;
-    setMonth(newMonth);
-    updateDateTime(day, newMonth, year, time);
-  };
-
-  const handleYearChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newYear = e.target.value;
-    setYear(newYear);
-    updateDateTime(day, month, newYear, time);
-  };
-
-  const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newTime = e.target.value;
-    setTime(newTime);
-    updateDateTime(day, month, year, newTime);
-  };
-
-  return (
-    <div className={`flex items-center gap-2 ${className || ''}`}>
-      {/* Date part - similar to DateInput */}
-      <div className="flex items-center gap-1">
-        <input
-          type="text"
+          placeholder="DD"
           value={day}
           onChange={handleDayChange}
-          placeholder="DD"
           maxLength={2}
-          className="w-12 px-2 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-center focus:outline-none focus:ring-2 focus:ring-[#4f7df9]/50"
+          className="w-full px-2 py-2 bg-white/10 border border-white/20 rounded-md text-white text-center focus:outline-none focus:ring-2 focus:ring-[#4f7df9]/50"
         />
-        <span className="text-white/60">/</span>
-        <input
-          type="text"
-          value={month}
-          onChange={handleMonthChange}
-          placeholder="MM"
-          maxLength={2}
-          className="w-12 px-2 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-center focus:outline-none focus:ring-2 focus:ring-[#4f7df9]/50"
-        />
-        <span className="text-white/60">/</span>
-        <input
-          type="text"
-          value={year}
-          onChange={handleYearChange}
-          placeholder="YYYY"
-          maxLength={4}
-          className="w-16 px-2 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-center focus:outline-none focus:ring-2 focus:ring-[#4f7df9]/50"
-        />
-      </div>
-      
-      {/* Time part - similar to time inputs */}
-      <div className="flex items-center gap-2">
-        <span className="text-white/60">at</span>
-        <div className="relative">
-          <input
-            type="time"
-            value={time}
-            onChange={handleTimeChange}
-            className="w-24 px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#4f7df9]/50"
-          />
-          <Clock className="absolute right-2 top-1/2 transform -translate-y-1/2 text-white/50" size={16} />
-        </div>
       </div>
     </div>
   );
@@ -312,12 +192,10 @@ const EventsAdmin = () => {
   const [editEvent, setEditEvent] = useState<Event | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState<'all' | 'published' | 'draft' | 'archived'>('all');
-
+  const [filterDisplay, setFilterDisplay] = useState<'all' | 'home' | 'events' | 'both'>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showForm, setShowForm] = useState(false);
   const [formErrors, setFormErrors] = useState<Partial<Record<keyof Omit<Event, 'id' | 'created_at' | 'updated_at'>, string>>>({});
-  const [showArchived, setShowArchived] = useState(false);
   
   // Form states for new/edit event
   const [title, setTitle] = useState('');
@@ -326,22 +204,7 @@ const EventsAdmin = () => {
   const [endTime, setEndTime] = useState('');
   const [venue, setVenue] = useState('');
   const [description, setDescription] = useState('');
-  const [publishAt, setPublishAt] = useState('');
-  const [status, setStatus] = useState<'draft' | 'published' | 'archived'>('published');
-  const [editingTimeForEvent, setEditingTimeForEvent] = useState<string | null>(null);
-
-  // Debug: Log when editingTimeForEvent changes
-  useEffect(() => {
-    console.log('editingTimeForEvent changed to:', editingTimeForEvent);
-  }, [editingTimeForEvent]);
-
-  // Debug: Log when popup should be showing
-  useEffect(() => {
-    if (editingTimeForEvent) {
-      console.log('Popup should be showing for event:', editingTimeForEvent);
-    }
-  }, [editingTimeForEvent]);
-
+  const [displayOn, setDisplayOn] = useState<'home' | 'events' | 'both'>('both');
 
   // Load events
   const loadEvents = async () => {
@@ -349,7 +212,7 @@ const EventsAdmin = () => {
     setError(null);
     
     try {
-      const data = await getAllEventsForAdmin();
+      const data = await getEvents();
       setEvents(data);
       setFilteredEvents(data);
     } catch (err: any) {
@@ -368,9 +231,9 @@ const EventsAdmin = () => {
   useEffect(() => {
     let filtered = events;
 
-    // Filter by status
-    if (filterStatus !== 'all') {
-      filtered = filtered.filter(event => event.status === filterStatus);
+    // Filter by display location
+    if (filterDisplay !== 'all') {
+      filtered = filtered.filter(event => event.display_on === filterDisplay);
     }
 
     // Filter by search term
@@ -383,7 +246,7 @@ const EventsAdmin = () => {
     }
 
     setFilteredEvents(filtered);
-  }, [events, searchTerm, filterStatus]);
+  }, [events, searchTerm, filterDisplay]);
 
   // Reset form
   const resetForm = () => {
@@ -393,9 +256,7 @@ const EventsAdmin = () => {
     setEndTime('');
     setVenue('');
     setDescription('');
-    setPublishAt('');
-    setStatus('published');
-
+    setDisplayOn('both');
     setEditEvent(null);
     setIsCreating(false);
     setShowForm(false);
@@ -407,16 +268,13 @@ const EventsAdmin = () => {
     setEditEvent(event);
     setTitle(event.title);
     
-    // Only try to parse if the date is valid (YYYY-MM-DD)
-    if (event.date && /^\d{4}-\d{2}-\d{2}$/.test(event.date)) {
-      try {
-        const dateObj = new Date(event.date);
-        const formattedDateForInput = dateObj.toISOString().split('T')[0];
-        setDate(formattedDateForInput);
-      } catch (e) {
-        setDate(event.date); // fallback to raw value
-      }
-    } else {
+    // Format date properly for the date input
+    try {
+      const dateObj = new Date(event.date);
+      const formattedDateForInput = dateObj.toISOString().split('T')[0];
+      setDate(formattedDateForInput);
+    } catch (e) {
+      console.error('Error parsing date:', e);
       setDate(event.date || '');
     }
     
@@ -432,11 +290,7 @@ const EventsAdmin = () => {
     setEndTime(extractTime(event.end_time));
     setVenue(event.venue);
     setDescription(event.description);
-    
-    // Set scheduling fields
-    setPublishAt(event.publish_at ? new Date(event.publish_at).toISOString().slice(0, 16) : '');
-    setStatus(event.status || 'published');
-
+    setDisplayOn(event.display_on || 'both');
     setIsCreating(false);
     setShowForm(true);
   };
@@ -488,18 +342,14 @@ const EventsAdmin = () => {
       end_time: endTime ? endTime.slice(0, 5) : null,
       venue: venue.trim(),
       description: description.trim(),
-      display_on: 'home',
-      publish_at: publishAt ? new Date(publishAt).toISOString() : null,
-      status: status,
+      display_on: displayOn,
     };
 
     try {
       if (editEvent) {
-        console.log('Updating event with data:', eventData);
         await updateEvent(editEvent.id, eventData);
         setSuccessMessage('Event updated successfully!');
       } else {
-        console.log('Creating event with data:', eventData);
         await createEvent(eventData);
         setSuccessMessage('Event created successfully!');
       }
@@ -510,8 +360,7 @@ const EventsAdmin = () => {
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err: any) {
       console.error('Error saving event:', err);
-      console.error('Error details:', err.message, err.details, err.hint);
-      setError(`Failed to save event: ${err.message || 'Please try again.'}`);
+      setError('Failed to save event. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -539,7 +388,32 @@ const EventsAdmin = () => {
   };
 
   // Get display icon based on display_on value
+  const getDisplayIcon = (displayOn: string) => {
+    switch (displayOn) {
+      case 'home':
+        return <Home size={16} />;
+      case 'events':
+        return <CalendarDays size={16} />;
+      case 'both':
+        return <Grid3X3 size={16} />;
+      default:
+        return <Eye size={16} />;
+    }
+  };
 
+  // Get display label
+  const getDisplayLabel = (displayOn: string) => {
+    switch (displayOn) {
+      case 'home':
+        return 'Home Page';
+      case 'events':
+        return 'Events Page';
+      case 'both':
+        return 'Both Pages';
+      default:
+        return 'Unknown';
+    }
+  };
 
   return (
     <AdminLayout>
@@ -575,20 +449,6 @@ const EventsAdmin = () => {
           </div>
         )}
 
-        {/* Automation Info */}
-        <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4">
-          <div className="flex items-start gap-3">
-            <Clock className="text-blue-400 mt-1" size={20} />
-            <div>
-              <h3 className="text-blue-200 font-medium mb-1">Automated Scheduling</h3>
-              <p className="text-blue-300 text-sm">
-                Events are automatically published and archived based on their schedule. 
-                Draft events become visible at their publish time, and past events are archived at 8:00 AM the next day.
-              </p>
-            </div>
-          </div>
-        </div>
-
         {/* Search and Filter Bar */}
         <div className="bg-[#1a365d]/50 backdrop-blur-sm rounded-lg p-4 border border-white/10">
           <div className="flex flex-col sm:flex-row gap-4">
@@ -604,19 +464,18 @@ const EventsAdmin = () => {
               />
             </div>
 
-
-
-            {/* Status Filter */}
+            {/* Filter */}
             <div className="relative">
+              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/50" size={18} />
               <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value as any)}
+                value={filterDisplay}
+                onChange={(e) => setFilterDisplay(e.target.value as any)}
                 className="pl-10 pr-8 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#4f7df9]/50 appearance-none"
               >
-                <option value="all">All Status</option>
-                <option value="published">Published</option>
-                <option value="draft">Draft</option>
-                <option value="archived">Archived</option>
+                <option value="all">All Locations</option>
+                <option value="home">Home Page Only</option>
+                <option value="events">Events Page Only</option>
+                <option value="both">Both Pages</option>
               </select>
             </div>
 
@@ -703,30 +562,14 @@ const EventsAdmin = () => {
                     
                     <div>
                       <label className="block text-sm font-medium text-white mb-2">Venue *</label>
-                      <select
-                        value={venue === 'Abbaquar-San Dream Centre' ? 'preset' : 'custom'}
-                        onChange={(e) => {
-                          if (e.target.value === 'preset') {
-                            setVenue('Abbaquar-San Dream Centre');
-                          } else {
-                            setVenue('');
-                          }
-                        }}
-                        className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#4f7df9]/50"
-                      >
-                        <option value="preset">Abbaquar-San Dream Centre</option>
-                        <option value="custom">Other (type below)</option>
-                      </select>
-                      {venue !== 'Abbaquar-San Dream Centre' && (
-                        <input
-                          type="text"
-                          value={venue}
-                          onChange={(e) => setVenue(e.target.value)}
-                          className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-[#4f7df9]/50 mt-2"
-                          placeholder="Enter custom venue"
-                          required
-                        />
-                      )}
+                      <input
+                        type="text"
+                        value={venue}
+                        onChange={(e) => setVenue(e.target.value)}
+                        className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-[#4f7df9]/50"
+                        placeholder="Enter event venue"
+                        required
+                      />
                     </div>
                   </div>
 
@@ -750,34 +593,17 @@ const EventsAdmin = () => {
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-white mb-2">Publish At (SAST)</label>
-                      <DateTimeInput
-                        value={publishAt}
-                        onChange={setPublishAt}
-                        className="w-full"
-                        placeholder="Leave empty to publish immediately"
-                      />
-                      <p className="text-xs text-white/60 mt-1">
-                        When this event should become visible on the website
-                      </p>
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-white mb-2">Status</label>
+                      <label className="block text-sm font-medium text-white mb-2">Display Location</label>
                       <select
-                        value={status}
-                        onChange={(e) => setStatus(e.target.value as any)}
+                        value={displayOn}
+                        onChange={(e) => setDisplayOn(e.target.value as any)}
                         className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#4f7df9]/50"
                       >
-                        <option value="published">Published</option>
-                        <option value="draft">Draft</option>
+                        <option value="both">Both Pages</option>
+                        <option value="home">Home Page Only</option>
+                        <option value="events">Events Page Only</option>
                       </select>
-                      <p className="text-xs text-white/60 mt-1">
-                        Draft events are only visible to admins
-                      </p>
                     </div>
-                    
-
                   </div>
                 </div>
                 
@@ -819,6 +645,15 @@ const EventsAdmin = () => {
               <h2 className="text-xl font-semibold text-white">
                 Events ({filteredEvents.length})
               </h2>
+              {!showForm && (
+                <button
+                  onClick={handleCreate}
+                  className="flex items-center px-3 py-2 bg-[#4f7df9] text-white rounded-lg hover:bg-[#3a6eea] transition-colors text-sm"
+                >
+                  <Plus size={16} className="mr-2" />
+                  Add Event
+                </button>
+              )}
             </div>
             
             {isLoading ? (
@@ -832,15 +667,15 @@ const EventsAdmin = () => {
               <div className="text-center py-12">
                 <CalendarIcon className="mx-auto text-white/40 mb-4" size={48} />
                 <h3 className="text-lg font-medium text-white/70 mb-2">
-                  {searchTerm ? 'No events found' : 'No events yet'}
+                  {searchTerm || filterDisplay !== 'all' ? 'No events found' : 'No events yet'}
                 </h3>
                 <p className="text-white/50 mb-4">
-                  {searchTerm 
-                    ? 'Try adjusting your search' 
+                  {searchTerm || filterDisplay !== 'all' 
+                    ? 'Try adjusting your search or filters' 
                     : 'Create your first event to get started'
                   }
                 </p>
-                {!searchTerm && (
+                {!searchTerm && filterDisplay === 'all' && (
                   <button
                     onClick={handleCreate}
                     className="flex items-center mx-auto px-4 py-2 bg-[#4f7df9] text-white rounded-lg hover:bg-[#3a6eea] transition-colors"
@@ -858,7 +693,7 @@ const EventsAdmin = () => {
                 {filteredEvents.map((event) => (
                   <div 
                     key={event.id} 
-                    className={`bg-white/10 rounded-lg overflow-hidden border border-white/20 hover:border-white/30 transition-all duration-200 group relative ${
+                    className={`bg-white/10 rounded-lg overflow-hidden border border-white/20 hover:border-white/30 transition-all duration-200 group ${
                       viewMode === 'list' ? 'flex' : ''
                     }`}
                   >
@@ -874,41 +709,6 @@ const EventsAdmin = () => {
                           >
                             <Pencil size={16} />
                           </button>
-                          {event.is_archived ? (
-                            <button
-                              onClick={async () => {
-                                try {
-                                  await unarchiveEvent(event.id);
-                                  await loadEvents();
-                                  setSuccessMessage('Event restored successfully!');
-                                  setTimeout(() => setSuccessMessage(null), 3000);
-                                } catch (err: any) {
-                                  setError('Failed to restore event. Please try again.');
-                                }
-                              }}
-                              className="p-1.5 text-green-400 hover:text-green-300 hover:bg-green-500/10 rounded-md transition-colors"
-                              title="Restore event"
-                            >
-                              <Eye size={16} />
-                            </button>
-                          ) : (
-                            <button
-                              onClick={async () => {
-                                try {
-                                  await archiveEvent(event.id);
-                                  await loadEvents();
-                                  setSuccessMessage('Event archived successfully!');
-                                  setTimeout(() => setSuccessMessage(null), 3000);
-                                } catch (err: any) {
-                                  setError('Failed to archive event. Please try again.');
-                                }
-                              }}
-                              className="p-1.5 text-yellow-400 hover:text-yellow-300 hover:bg-yellow-500/10 rounded-md transition-colors"
-                              title="Archive event"
-                            >
-                              <EyeOff size={16} />
-                            </button>
-                          )}
                           <button
                             onClick={() => handleDelete(event.id)}
                             className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-md transition-colors"
@@ -925,93 +725,10 @@ const EventsAdmin = () => {
                           <span>{formatEventDate(event.date)}</span>
                         </div>
                         
-                        <div 
-                          className="flex items-center gap-2 text-sm text-white/70 cursor-pointer hover:text-white hover:bg-white/10 px-2 py-1 rounded transition-colors"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            console.log('Time row clicked for event:', event.id);
-                            setEditingTimeForEvent(event.id);
-                          }}
-                          title="Click to edit time"
-                        >
-                          <ClockIcon size={14} />
-                          <span>{formatEventTimeRange(event.start_time, event.end_time)}</span>
-                        </div>
-                        
-                        {/* Time Edit Popup */}
-                        {editingTimeForEvent === event.id && (
-                          <div className="absolute top-0 left-0 z-50 bg-[#1a365d] border border-white/20 rounded-lg p-4 shadow-lg min-w-[300px]">
-                            <div className="flex items-center gap-2 mb-3">
-                              <span className="text-white text-sm">Edit Time</span>
-                              <button
-                                onClick={() => setEditingTimeForEvent(null)}
-                                className="ml-auto text-white/70 hover:text-white"
-                              >
-                                <X size={16} />
-                              </button>
-                            </div>
-                            <div className="grid grid-cols-2 gap-2">
-                              <div>
-                                <label className="block text-xs text-white/70 mb-1">Start Time</label>
-                                <input
-                                  type="time"
-                                  value={event.start_time || ''}
-                                  onChange={(e) => {
-                                    // Update the event's start_time
-                                    const updatedEvents = events.map(ev => 
-                                      ev.id === event.id 
-                                        ? { ...ev, start_time: e.target.value }
-                                        : ev
-                                    );
-                                    setEvents(updatedEvents);
-                                  }}
-                                  className="w-full px-2 py-1 bg-white/10 border border-white/20 rounded text-white text-sm"
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-xs text-white/70 mb-1">End Time</label>
-                                <input
-                                  type="time"
-                                  value={event.end_time || ''}
-                                  onChange={(e) => {
-                                    // Update the event's end_time
-                                    const updatedEvents = events.map(ev => 
-                                      ev.id === event.id 
-                                        ? { ...ev, end_time: e.target.value }
-                                        : ev
-                                    );
-                                    setEvents(updatedEvents);
-                                  }}
-                                  className="w-full px-2 py-1 bg-white/10 border border-white/20 rounded text-white text-sm"
-                                />
-                              </div>
-                            </div>
-                            <div className="flex justify-end gap-2 mt-3">
-                              <button
-                                onClick={() => setEditingTimeForEvent(null)}
-                                className="px-3 py-1 text-xs text-white/70 hover:text-white border border-white/20 rounded"
-                              >
-                                Cancel
-                              </button>
-                              <button
-                                onClick={async () => {
-                                  try {
-                                    await updateEvent(event.id, {
-                                      start_time: event.start_time,
-                                      end_time: event.end_time
-                                    });
-                                    setEditingTimeForEvent(null);
-                                    await loadEvents(); // Reload to get updated data
-                                  } catch (err) {
-                                    console.error('Failed to update time:', err);
-                                  }
-                                }}
-                                className="px-3 py-1 text-xs bg-[#4f7df9] text-white rounded"
-                              >
-                                Save
-                              </button>
-                            </div>
+                        {(event.start_time || event.end_time) && (
+                          <div className="flex items-center gap-2 text-sm text-white/70">
+                            <ClockIcon size={14} />
+                            <span>{formatEventTimeRange(event.start_time, event.end_time)}</span>
                           </div>
                         )}
                         
@@ -1027,27 +744,12 @@ const EventsAdmin = () => {
                       
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2 text-xs text-white/60">
-                          <CalendarIcon size={12} />
-                          <span>{new Date(event.created_at).toLocaleDateString()}</span>
+                          {getDisplayIcon(event.display_on)}
+                          <span>{getDisplayLabel(event.display_on)}</span>
                         </div>
                         
-                        {/* Status indicator */}
-                        <div className="flex items-center gap-1">
-                          {event.status === 'draft' && (
-                            <span className="px-2 py-1 text-xs bg-yellow-500/20 text-yellow-300 rounded-full">
-                              Draft
-                            </span>
-                          )}
-                          {event.status === 'archived' && (
-                            <span className="px-2 py-1 text-xs bg-gray-500/20 text-gray-300 rounded-full">
-                              Archived
-                            </span>
-                          )}
-                          {event.publish_at && new Date(event.publish_at) > new Date() && (
-                            <span className="px-2 py-1 text-xs bg-blue-500/20 text-blue-300 rounded-full">
-                              Scheduled
-                            </span>
-                          )}
+                        <div className="text-xs text-white/40">
+                          {new Date(event.created_at).toLocaleDateString()}
                         </div>
                       </div>
                     </div>

@@ -1,67 +1,124 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useReducer } from 'react';
+import { format } from 'date-fns';
 import AdminLayout from '@/components/admin/AdminLayout';
-import { Image, FileImage, Calendar, Mail, TrendingUp, Users, Eye, Plus, Clock, RefreshCw } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
-import { checkSystemHealth, SystemHealth } from '@/lib/healthService';
-import { getDashboardData, invalidateDashboardCache, type CountsData, type RecentActivity } from '@/lib/dashboardService';
 import TimeWidget from '@/components/admin/TimeWidget';
 import WeatherWidget from '@/components/admin/WeatherWidget';
-import { format, subDays, isValid, parseISO } from 'date-fns';
+import { getDashboardData, getSystemHealth } from '@/lib/dashboardService';
+import { RefreshCw, Users, Calendar, Image, Database, Activity } from 'lucide-react';
 
+interface DashboardState {
+  stats: {
+    totalEvents: number;
+    totalImages: number;
+    totalActivities: number;
+  };
+  systemHealth: {
+    database: 'healthy' | 'warning' | 'error';
+    api: 'healthy' | 'warning' | 'error';
+    storage: 'healthy' | 'warning' | 'error';
+  };
+  recentActivity: Array<{
+    id: string;
+    action: string;
+    timestamp: string;
+    user?: string;
+  }>;
+  isLoading: boolean;
+  error: string | null;
+}
 
+type DashboardAction =
+  | { type: 'SET_LOADING'; payload: boolean }
+  | { type: 'SET_ERROR'; payload: string | null }
+  | { type: 'SET_STATS'; payload: DashboardState['stats'] }
+  | { type: 'SET_SYSTEM_HEALTH'; payload: DashboardState['systemHealth'] }
+  | { type: 'SET_RECENT_ACTIVITY'; payload: DashboardState['recentActivity'] };
+
+const dashboardReducer = (state: DashboardState, action: DashboardAction): DashboardState => {
+  switch (action.type) {
+    case 'SET_LOADING':
+      return { ...state, isLoading: action.payload };
+    case 'SET_ERROR':
+      return { ...state, error: action.payload };
+    case 'SET_STATS':
+      return { ...state, stats: action.payload };
+    case 'SET_SYSTEM_HEALTH':
+      return { ...state, systemHealth: action.payload };
+    case 'SET_RECENT_ACTIVITY':
+      return { ...state, recentActivity: action.payload };
+    default:
+      return state;
+  }
+};
 
 const AdminDashboard = () => {
-  const [countsData, setCountsData] = useState<CountsData>({
-    gallery: 0,
-    activities: 0,
-    events: 0,
-    messages: 0,
+  const [state, dispatch] = useReducer(dashboardReducer, {
+    stats: {
+      totalUsers: 0,
+      totalEvents: 0,
+      totalImages: 0,
+      totalActivities: 0,
+    },
+    systemHealth: {
+      database: 'healthy',
+      api: 'healthy',
+      storage: 'healthy',
+    },
+    recentActivity: [],
+    isLoading: false,
+    error: null,
   });
-  const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
-  const [systemHealth, setSystemHealth] = useState<SystemHealth | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [error, setError] = useState(null);
-  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
 
   const fetchDashboardData = async () => {
-    setIsLoading(true);
-    try {
-      // Use optimized dashboard service with caching
-      const { counts, recentActivity: activity } = await getDashboardData();
-      
-      setCountsData(counts);
-      setRecentActivity(activity);
+    dispatch({ type: 'SET_LOADING', payload: true });
+    dispatch({ type: 'SET_ERROR', payload: null });
 
-    } catch (err: any) {
-      setError(`Failed to load data: ${err.message}. Check Supabase connection or data availability.`);
-      console.log(`Dashboard error details: ${err.message}`);
+    try {
+      const data = await getDashboardData();
+      // Transform the counts data to match the expected stats structure
+      const stats = {
+        totalEvents: data.counts.events || 0,
+        totalImages: data.counts.gallery || 0,
+        totalActivities: data.counts.activities || 0,
+      };
+      
+      // Transform recent activity to match expected structure
+      const transformedActivity = (data.recentActivity || []).map((item: any) => ({
+        id: item.id || `activity-${Date.now()}`,
+        action: item.title || `${item.type || 'Item'} created`,
+        timestamp: item.created_at || new Date().toISOString(),
+        user: undefined // We don't have user info in the current structure
+      }));
+      
+      dispatch({ type: 'SET_STATS', payload: stats });
+      dispatch({ type: 'SET_RECENT_ACTIVITY', payload: transformedActivity });
+    } catch (error: any) {
+      console.error('Failed to fetch dashboard data:', error);
+      dispatch({ type: 'SET_ERROR', payload: 'Failed to load dashboard data' });
     } finally {
-      setIsLoading(false);
+      dispatch({ type: 'SET_LOADING', payload: false });
     }
   };
 
   const fetchSystemHealth = async () => {
     try {
-      const health = await checkSystemHealth();
-      setSystemHealth(health);
-    } catch (err: any) {
-      console.error('Failed to check system health:', err);
-      // Set a default error state
-      setSystemHealth({
-        database: { name: 'Database', status: 'error', message: 'Health check failed', lastChecked: new Date() },
-        storage: { name: 'Storage', status: 'error', message: 'Health check failed', lastChecked: new Date() },
-        authentication: { name: 'Authentication', status: 'error', message: 'Health check failed', lastChecked: new Date() },
-        overall: 'down'
-      });
+      const health = await getSystemHealth();
+      // Transform the health data to match the expected structure
+      const systemHealth = {
+        database: health.database?.status === 'online' ? 'healthy' : 'error',
+        api: health.authentication?.status === 'online' ? 'healthy' : 'error',
+        storage: health.storage?.status === 'online' ? 'healthy' : 'error',
+      };
+      dispatch({ type: 'SET_SYSTEM_HEALTH', payload: systemHealth });
+    } catch (error: any) {
+      console.error('Failed to fetch system health:', error);
+      // Set default error state
+      dispatch({ type: 'SET_SYSTEM_HEALTH', payload: {
+        database: 'error',
+        api: 'error',
+        storage: 'error',
+      }});
     }
-  };
-
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    setLastRefresh(new Date());
-    await Promise.all([fetchDashboardData(), fetchSystemHealth()]);
-    setIsRefreshing(false);
   };
 
   useEffect(() => {
@@ -69,309 +126,181 @@ const AdminDashboard = () => {
     fetchSystemHealth();
   }, []);
 
-  // Auto-refresh every 30 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      fetchDashboardData();
-      fetchSystemHealth();
-      setLastRefresh(new Date());
-    }, 30000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const cards = [
-    {
-      title: 'Gallery Images',
-      count: countsData.gallery,
-      icon: Image,
-      color: 'bg-blue-500',
-      link: '/login/gallery',
-      description: 'Photos & media'
-    },
-    {
-      title: 'Activities',
-      count: countsData.activities,
-      icon: FileImage,
-      color: 'bg-green-500',
-      link: '/login/activities',
-      description: 'Programmes & services'
-    },
-    {
-      title: 'Events',
-      count: countsData.events,
-      icon: Calendar,
-      color: 'bg-purple-500',
-      link: '/login/events',
-      description: 'Upcoming events'
-    },
-    {
-      title: 'Contact Messages',
-      count: countsData.messages,
-      icon: Mail,
-      color: 'bg-orange-500',
-      link: '/login/messages',
-      description: 'Form submissions'
-    },
-  ];
-
-  const getActivityIcon = (type: string) => {
-    switch (type) {
-      case 'gallery': return <Image className="w-4 h-4" />;
-      case 'activities': return <FileImage className="w-4 h-4" />;
-      case 'events': return <Calendar className="w-4 h-4" />;
-      case 'messages': return <Mail className="w-4 h-4" />;
-      default: return <Plus className="w-4 h-4" />;
-    }
+  const handleRefresh = () => {
+    fetchDashboardData();
+    fetchSystemHealth();
   };
 
-  const getActivityColor = (type: string) => {
-    switch (type) {
-      case 'gallery': return 'text-blue-400';
-      case 'activities': return 'text-green-400';
-      case 'events': return 'text-purple-400';
-      case 'messages': return 'text-orange-400';
-      default: return 'text-gray-400';
-    }
-  };
+  // Show loading state
+  if (state.isLoading) {
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4f7df9] mx-auto mb-4"></div>
+            <p className="text-white/70">Loading dashboard data...</p>
+          </div>
+        </div>
+      </AdminLayout>
+    );
+  }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'online': return 'bg-green-500/20 border-green-500/30';
-      case 'offline': return 'bg-red-500/20 border-red-500/30';
-      case 'error': return 'bg-yellow-500/20 border-yellow-500/30';
-      default: return 'bg-gray-500/20 border-gray-500/30';
-    }
-  };
-
-  const getStatusDotColor = (status: string) => {
-    switch (status) {
-      case 'online': return 'bg-green-400';
-      case 'offline': return 'bg-red-400';
-      case 'error': return 'bg-yellow-400';
-      default: return 'bg-gray-400';
-    }
-  };
-
-  const getOverallStatusColor = (overall: string) => {
-    switch (overall) {
-      case 'healthy': return 'text-green-400';
-      case 'degraded': return 'text-yellow-400';
-      case 'down': return 'text-red-400';
-      default: return 'text-gray-400';
-    }
-  };
+  // Show error state
+  if (state.error) {
+    return (
+      <AdminLayout>
+        <div className="space-y-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-white">Welcome back, Admin!</h1>
+              <p className="mt-1 text-white/70">Today is {format(new Date(), 'EEEE, MMMM d, yyyy')}</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleRefresh}
+                className="flex items-center px-4 py-2 bg-[#4f7df9] text-white rounded-lg hover:bg-[#4f7df9]/80 transition-colors shadow"
+              >
+                <RefreshCw size={16} className="mr-2" />
+                Refresh
+              </button>
+              <div className="flex gap-3">
+                <TimeWidget />
+                <WeatherWidget />
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-red-900/20 border border-red-500/30 rounded-xl p-6">
+            <div className="flex items-center">
+              <div className="w-5 h-5 bg-red-500 rounded-full mr-3"></div>
+              <h2 className="text-xl font-semibold text-red-400">Error Loading Dashboard</h2>
+            </div>
+            <p className="text-red-300 mt-2">{state.error}</p>
+            <button
+              onClick={handleRefresh}
+              className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+      <div className="space-y-8">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-white">Dashboard</h1>
-            <p className="mt-2 text-white/70">Welcome to your admin portal</p>
+            <h1 className="text-3xl font-bold text-white">Welcome back, Admin!</h1>
+            <p className="mt-1 text-white/70">Today is {format(new Date(), 'EEEE, MMMM d, yyyy')}</p>
           </div>
-          
-          <div className="mt-4 md:mt-0 flex items-center space-x-4">
+          <div className="flex items-center gap-3">
             <button
               onClick={handleRefresh}
-              disabled={isRefreshing}
-              className="backdrop-blur-sm px-4 py-2 rounded-lg text-sm flex items-center space-x-2 bg-white/10 border border-white/20 text-white/80 hover:bg-white/15 transition-colors disabled:opacity-50"
+              className="flex items-center px-4 py-2 bg-[#4f7df9] text-white rounded-lg hover:bg-[#4f7df9]/80 transition-colors shadow"
             >
-              <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-              <span>Refresh</span>
+              <RefreshCw size={16} className="mr-2" />
+              Refresh
             </button>
-            <div className="backdrop-blur-sm px-4 py-2 rounded-lg text-sm flex items-center space-x-4 bg-white/10 border border-white/20 text-white/80">
+            <div className="flex gap-3">
               <TimeWidget />
-              <span className="text-white/30">|</span>
               <WeatherWidget />
             </div>
           </div>
         </div>
 
-        {isLoading ? (
-          <div className="flex justify-center py-16">
-            <div className="flex flex-col items-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-r-2 border-[#4f7df9]"></div>
-              <p className="mt-4 text-white/70">Loading dashboard data...</p>
+        {/* Quick Stats */}
+        <div className="bg-[#1a365d] rounded-xl p-6 border border-white/10">
+          <h2 className="text-xl font-semibold mb-4 text-white">Quick Stats</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="flex items-center p-4 bg-[#0c2342] rounded-lg">
+              <Calendar className="w-8 h-8 text-[#4f7df9] mr-3" />
+              <div>
+                <div className="text-2xl font-bold text-white">{state.stats?.totalEvents || 0}</div>
+                <div className="text-sm text-white/70">Total Events</div>
+              </div>
+            </div>
+            <div className="flex items-center p-4 bg-[#0c2342] rounded-lg">
+              <Image className="w-8 h-8 text-[#4f7df9] mr-3" />
+              <div>
+                <div className="text-2xl font-bold text-white">{state.stats?.totalImages || 0}</div>
+                <div className="text-sm text-white/70">Gallery Images</div>
+              </div>
+            </div>
+            <div className="flex items-center p-4 bg-[#0c2342] rounded-lg">
+              <Activity className="w-8 h-8 text-[#4f7df9] mr-3" />
+              <div>
+                <div className="text-2xl font-bold text-white">{state.stats?.totalActivities || 0}</div>
+                <div className="text-sm text-white/70">Total Activities</div>
+              </div>
             </div>
           </div>
-        ) : (
-          <>
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {cards.map((card, index) => (
-                <a
-                  key={card.title}
-                  href={card.link}
-                  aria-label={`Navigate to ${card.title} management`}
-                  className="group backdrop-blur-sm rounded-xl shadow-sm hover:shadow-md transition-all duration-300 p-6 overflow-hidden relative bg-white/10 border border-white/20 hover:bg-white/15"
-                >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="p-3 rounded-xl bg-[#4f7df9]/30 text-white">
-                      <card.icon className="" size={22} />
-                    </div>
-                    <span className="text-xs font-medium px-2 py-1 rounded-md text-white/80 bg-white/10">
-                      {index === 0 ? 'Media' : index === 1 ? 'Content' : index === 2 ? 'Events' : 'Communication'}
-                    </span>
-                  </div>
-                  
-                  <div>
-                    <p className="text-3xl font-bold text-white mb-1 group-hover:text-[#4f7df9] transition-colors">
-                      {card.count}
-                    </p>
-                    <h2 className="font-medium text-white/80 mb-1">{card.title}</h2>
-                    <p className="text-xs text-white/60">{card.description}</p>
-                  </div>
-                  
-                  <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#4f7df9]/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                </a>
-              ))}
-            </div>
+        </div>
 
-            {/* Quick Actions */}
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg shadow border border-white/20 p-6">
-              <h2 className="text-lg font-semibold text-white mb-4 flex items-center">
-                <TrendingUp className="w-5 h-5 mr-2" />
-                Quick Actions
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <a
-                  href="/login/gallery"
-                  className="flex items-center p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-colors border border-white/10"
-                >
-                  <Plus className="w-5 h-5 mr-3 text-[#4f7df9]" />
-                  <div>
-                    <p className="font-medium text-white">Add Image</p>
-                    <p className="text-sm text-white/60">Upload to gallery</p>
-                  </div>
-                </a>
-                <a
-                  href="/login/activities"
-                  className="flex items-center p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-colors border border-white/10"
-                >
-                  <Plus className="w-5 h-5 mr-3 text-[#4f7df9]" />
-                  <div>
-                    <p className="font-medium text-white">Add Activity</p>
-                    <p className="text-sm text-white/60">Create new programme</p>
-                  </div>
-                </a>
-                <a
-                  href="/login/events"
-                  className="flex items-center p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-colors border border-white/10"
-                >
-                  <Plus className="w-5 h-5 mr-3 text-[#4f7df9]" />
-                  <div>
-                    <p className="font-medium text-white">Add Event</p>
-                    <p className="text-sm text-white/60">Schedule new event</p>
-                  </div>
-                </a>
-                <a
-                  href="/login/messages"
-                  className="flex items-center p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-colors border border-white/10"
-                >
-                  <Eye className="w-5 h-5 mr-3 text-[#4f7df9]" />
-                  <div>
-                    <p className="font-medium text-white">View Messages</p>
-                    <p className="text-sm text-white/60">Check contact form</p>
-                  </div>
-                </a>
+        {/* System Status */}
+        <div className="bg-[#1a365d] rounded-xl p-6 border border-white/10">
+          <h2 className="text-xl font-semibold mb-4 text-white">System Status</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="flex items-center p-4 bg-[#0c2342] rounded-lg">
+              <Database className="w-6 h-6 mr-3" style={{ color: state.systemHealth?.database === 'healthy' ? '#10b981' : state.systemHealth?.database === 'warning' ? '#f59e0b' : '#ef4444' }} />
+              <div>
+                <div className="font-medium text-white">Database</div>
+                <div className="text-sm" style={{ color: state.systemHealth?.database === 'healthy' ? '#10b981' : state.systemHealth?.database === 'warning' ? '#f59e0b' : '#ef4444' }}>
+                  {state.systemHealth?.database === 'healthy' ? 'Healthy' : state.systemHealth?.database === 'warning' ? 'Warning' : 'Error'}
+                </div>
               </div>
             </div>
-
-            {/* Recent Activity */}
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg shadow border border-white/20 p-6">
-              <h2 className="text-lg font-semibold text-white mb-4 flex items-center">
-                <Clock className="w-5 h-5 mr-2" />
-                Recent Activity
-              </h2>
-              {recentActivity.length === 0 ? (
-                <div className="text-center py-8 text-white/60">
-                  <Clock className="w-12 h-12 mx-auto mb-3 text-white/30" />
-                  <p>No recent activity</p>
+            <div className="flex items-center p-4 bg-[#0c2342] rounded-lg">
+              <Activity className="w-6 h-6 mr-3" style={{ color: state.systemHealth?.api === 'healthy' ? '#10b981' : state.systemHealth?.api === 'warning' ? '#f59e0b' : '#ef4444' }} />
+              <div>
+                <div className="font-medium text-white">API</div>
+                <div className="text-sm" style={{ color: state.systemHealth?.api === 'healthy' ? '#10b981' : state.systemHealth?.api === 'warning' ? '#f59e0b' : '#ef4444' }}>
+                  {state.systemHealth?.api === 'healthy' ? 'Healthy' : state.systemHealth?.api === 'warning' ? 'Warning' : 'Error'}
                 </div>
-              ) : (
-                <div className="space-y-3">
-                  {recentActivity.map((activity, index) => (
-                    <div key={index} className="flex items-center p-3 bg-white/5 rounded-lg">
-                      <div className={`p-2 rounded-lg bg-white/10 mr-3 ${getActivityColor(activity.type)}`}>
-                        {getActivityIcon(activity.type)}
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-white">{activity.action}</p>
-                        <p className="text-xs text-white/70 truncate">{activity.title}</p>
-                      </div>
-                      <div className="text-xs text-white/50">
-                        {(() => {
-                          let formatted = 'N/A';
-                          if (activity.timestamp) {
-                            let dateObj = typeof activity.timestamp === 'string' ? new Date(activity.timestamp) : activity.timestamp;
-                            if (isValid(dateObj)) {
-                              try {
-                                formatted = format(dateObj, 'dd/MM HH:mm');
-                              } catch {}
-                            }
-                          }
-                          return formatted;
-                        })()}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* System Status */}
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg shadow border border-white/20 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-white flex items-center">
-                  <Users className="w-5 h-5 mr-2" />
-                  System Status
-                </h2>
-                {systemHealth && (
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm text-white/60">Overall:</span>
-                    <span className={`text-sm font-medium ${getOverallStatusColor(systemHealth.overall)}`}>
-                      {systemHealth.overall.charAt(0).toUpperCase() + systemHealth.overall.slice(1)}
-                    </span>
-                  </div>
-                )}
-              </div>
-              {systemHealth ? (
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className={`flex items-center p-3 rounded-lg border ${getStatusColor(systemHealth.database.status)}`}>
-                    <div className={`w-3 h-3 rounded-full mr-3 ${getStatusDotColor(systemHealth.database.status)}`}></div>
-                    <div>
-                      <p className="text-sm font-medium text-white">{systemHealth.database.name}</p>
-                      <p className="text-xs text-white/70">{systemHealth.database.message}</p>
-                    </div>
-                  </div>
-                  <div className={`flex items-center p-3 rounded-lg border ${getStatusColor(systemHealth.storage.status)}`}>
-                    <div className={`w-3 h-3 rounded-full mr-3 ${getStatusDotColor(systemHealth.storage.status)}`}></div>
-                    <div>
-                      <p className="text-sm font-medium text-white">{systemHealth.storage.name}</p>
-                      <p className="text-xs text-white/70">{systemHealth.storage.message}</p>
-                    </div>
-                  </div>
-                  <div className={`flex items-center p-3 rounded-lg border ${getStatusColor(systemHealth.authentication.status)}`}>
-                    <div className={`w-3 h-3 rounded-full mr-3 ${getStatusDotColor(systemHealth.authentication.status)}`}></div>
-                    <div>
-                      <p className="text-sm font-medium text-white">{systemHealth.authentication.name}</p>
-                      <p className="text-xs text-white/70">{systemHealth.authentication.message}</p>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-8 text-white/60">
-                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-r-2 border-[#4f7df9] mx-auto mb-3"></div>
-                  <p>Checking system status...</p>
-                </div>
-              )}
-              <div className="mt-4 text-xs text-white/50 text-center">
-                Last updated: {format(lastRefresh, 'HH:mm:ss')} | Auto-refresh every 30 seconds
               </div>
             </div>
-          </>
-        )}
+            <div className="flex items-center p-4 bg-[#0c2342] rounded-lg">
+              <Database className="w-6 h-6 mr-3" style={{ color: state.systemHealth?.storage === 'healthy' ? '#10b981' : state.systemHealth?.storage === 'warning' ? '#f59e0b' : '#ef4444' }} />
+              <div>
+                <div className="font-medium text-white">Storage</div>
+                <div className="text-sm" style={{ color: state.systemHealth?.storage === 'healthy' ? '#10b981' : state.systemHealth?.storage === 'warning' ? '#f59e0b' : '#ef4444' }}>
+                  {state.systemHealth?.storage === 'healthy' ? 'Healthy' : state.systemHealth?.storage === 'warning' ? 'Warning' : 'Error'}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Recent Activity */}
+        <div className="bg-[#1a365d] rounded-xl p-6 border border-white/10">
+          <h2 className="text-xl font-semibold mb-4 text-white">Recent Activity</h2>
+          <div className="space-y-3">
+            {state.recentActivity?.slice(0, 3).map((activity) => (
+              <div key={activity.id} className="flex items-center justify-between p-3 bg-[#0c2342] rounded-lg">
+                <div className="flex items-center">
+                  <div className="w-2 h-2 bg-[#4f7df9] rounded-full mr-3"></div>
+                  <span className="text-white">{activity.action}</span>
+                  {activity.user && (
+                    <span className="text-white/60 ml-2">by {activity.user}</span>
+                  )}
+                </div>
+                <span className="text-xs text-white/40">
+                  {activity.timestamp && !isNaN(new Date(activity.timestamp).getTime())
+                    ? format(new Date(activity.timestamp), 'MMM d, HH:mm')
+                    : '—'}
+                </span>
+              </div>
+            ))}
+            {(!state.recentActivity || state.recentActivity.length === 0) && (
+              <div className="text-center py-8 text-white/60">
+                No recent activity
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </AdminLayout>
   );

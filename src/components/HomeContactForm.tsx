@@ -88,32 +88,6 @@ const HomeContactForm: React.FC<HomeContactFormProps> = ({ showContainer = true 
 
       const result = await response.json();
       
-      // Also save to database for admin management
-      try {
-        const { supabase } = await import('@/lib/supabase');
-        const { data, error } = await supabase.from('contact_messages').insert({
-          name: formData.name,
-          email: formData.email,
-          subject: formData.subject || 'New contact form submission',
-          message: formData.message,
-          status: 'new'
-        });
-        
-        if (error) {
-          console.error('Database insert error:', error);
-          console.error('Error details:', {
-            message: error.message,
-            details: error.details,
-            hint: error.hint
-          });
-        } else {
-          console.log('Message saved to database successfully:', data);
-        }
-      } catch (dbError) {
-        console.error('Failed to save message to database:', dbError);
-        // Don't fail the form submission if database save fails
-      }
-      
       if (result.success) {
         // Reset form on success
         setSubmitStatus({ success: true, message: 'Your message has been sent successfully!' });

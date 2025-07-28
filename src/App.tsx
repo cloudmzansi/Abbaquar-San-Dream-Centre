@@ -29,15 +29,13 @@ const AdminDashboard = lazy(() => import("./pages/Admin/Dashboard"));
 const GalleryAdmin = lazy(() => import("./pages/Admin/Gallery"));
 const ActivitiesAdmin = lazy(() => import("./pages/Admin/Activities"));
 const EventsAdmin = lazy(() => import("./pages/Admin/Events"));
-const ContactMessages = lazy(() => import("./pages/Admin/ContactMessages"));
-
 const BackupExport = lazy(() => import("./pages/Admin/BackupExport"));
 
-// Simple function to scroll to top of page
+// Add scrollToTop utility function
 function scrollToTop() {
-  window.scrollTo(0, 0);
-  document.documentElement.scrollTop = 0;
-  document.body.scrollTop = 0; // For Safari
+  if (typeof window !== 'undefined') {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 }
 
 const AppRoutes = () => {
@@ -102,16 +100,6 @@ const AppRoutes = () => {
           <ProtectedRoute>
             <Suspense fallback={<LoadingFallback />}>
               <EventsAdmin />
-            </Suspense>
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/login/messages" 
-        element={
-          <ProtectedRoute>
-            <Suspense fallback={<LoadingFallback />}>
-              <ContactMessages />
             </Suspense>
           </ProtectedRoute>
         } 

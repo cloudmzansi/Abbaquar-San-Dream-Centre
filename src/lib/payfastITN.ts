@@ -105,47 +105,7 @@ export class PayFastITNService {
         return { success: false, message: 'Invalid signature' };
       }
 
-      // Check if this payment has already been processed
-      const { data: existingPayment } = await supabase
-        .from('donations')
-        .select('id')
-        .eq('payfast_payment_id', data.pf_payment_id)
-        .single();
-
-      if (existingPayment) {
-        console.log(`Payment ${data.pf_payment_id} already processed`);
-        return { success: true, message: 'Payment already processed' };
-      }
-
-      // Parse amounts
-      const amountGross = parseFloat(data.amount_gross);
-      const amountFee = parseFloat(data.amount_fee);
-      const amountNet = parseFloat(data.amount_net);
-
-      // Store donation record
-      const { error: donationError } = await supabase
-        .from('donations')
-        .insert({
-          payfast_payment_id: data.pf_payment_id,
-          merchant_payment_id: data.m_payment_id,
-          payment_status: data.payment_status,
-          amount_gross: amountGross,
-          amount_fee: amountFee,
-          amount_net: amountNet,
-          currency: 'ZAR',
-          donor_first_name: data.name_first,
-          donor_last_name: data.name_last,
-          donor_email: data.email_address,
-          item_name: data.item_name,
-          item_description: data.item_description,
-          created_at: new Date().toISOString()
-        });
-
-      if (donationError) {
-        console.error('Error storing donation:', donationError);
-        return { success: false, message: 'Failed to store donation' };
-      }
-
+      // Remove all code that queries or inserts into the donations table. If this breaks the flow, add a comment or placeholder for future payment handling.
 
 
       console.log(`Successfully processed donation: ${data.pf_payment_id}`);

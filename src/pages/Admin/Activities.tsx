@@ -1,19 +1,46 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { getActivities, createActivity, updateActivity, deleteActivity, updateActivityOrder } from '@/lib/activitiesService';
 import { Activity } from '@/types/supabase';
-import { FileImage, Loader, Plus, Pencil, Trash2, Save, X, ChevronUp, ChevronDown } from 'lucide-react';
+import { 
+  FileImage, 
+  Loader, 
+  Plus, 
+  Pencil, 
+  Trash2, 
+  Save, 
+  X, 
+  Search,
+  Filter,
+  Grid3X3,
+  List,
+  Eye,
+  EyeOff,
+  Upload,
+  Image as ImageIcon,
+  Calendar,
+  Home,
+  Activity as ActivityIcon,
+  ArrowUpDown,
+  MoreVertical,
+  CheckCircle,
+  AlertCircle
+} from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 const ActivitiesAdmin = () => {
   const [activities, setActivities] = useState<Activity[]>([]);
+  const [filteredActivities, setFilteredActivities] = useState<Activity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [editActivity, setEditActivity] = useState<Activity | null>(null);
   const [isCreating, setIsCreating] = useState(false);
-  const [visibleItems, setVisibleItems] = useState(10); // Limit initial items displayed
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterDisplay, setFilterDisplay] = useState<'all' | 'home' | 'activities' | 'both'>('all');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [showForm, setShowForm] = useState(false);
 
   // Form states for new/edit activity
   const [title, setTitle] = useState('');
@@ -21,8 +48,9 @@ const ActivitiesAdmin = () => {
   const [displayOn, setDisplayOn] = useState<'home' | 'activities' | 'both'>('both');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
-  // Load activities with pagination or limit
+  // Load activities
   const loadActivities = async () => {
     setIsLoading(true);
     setError(null);
@@ -30,6 +58,7 @@ const ActivitiesAdmin = () => {
     try {
       const data = await getActivities();
       setActivities(data);
+      setFilteredActivities(data);
     } catch (err: any) {
       console.error('Failed to load activities:', err);
       setError('Failed to load activities. Please try again.');
@@ -42,24 +71,34 @@ const ActivitiesAdmin = () => {
     loadActivities();
   }, []);
 
-  // Handle loading more items
-  const handleLoadMore = () => {
-    setVisibleItems(prev => prev + 10);
-  };
+  // Filter and search activities
+  useEffect(() => {
+    let filtered = activities;
 
-  // Handle image file selection
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-    
-    const file = files[0];
-    
+    // Filter by display location
+    if (filterDisplay !== 'all') {
+      filtered = filtered.filter(activity => activity.display_on === filterDisplay);
+    }
+
+    // Filter by search term
+    if (searchTerm) {
+      filtered = filtered.filter(activity =>
+        activity.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        activity.description.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    setFilteredActivities(filtered);
+  }, [activities, searchTerm, filterDisplay]);
+
+  // Handle image file selection with drag and drop
+  const handleImageChange = useCallback((file: File) => {
     // Create an image element to check dimensions
     const img = new Image();
     const objectUrl = URL.createObjectURL(file);
     
     img.onload = () => {
-      URL.revokeObjectURL(objectUrl); // Clean up
+      URL.revokeObjectURL(objectUrl);
       
       if (img.width !== 384 || img.height !== 192) {
         setError(`Image must be exactly 384x192 pixels. Current size: ${img.width}x${img.height}`);
@@ -81,6 +120,32 @@ const ActivitiesAdmin = () => {
     };
     
     img.src = objectUrl;
+  }, []);
+
+  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    handleImageChange(files[0]);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      handleImageChange(files[0]);
+    }
   };
 
   // Reset form
@@ -92,6 +157,7 @@ const ActivitiesAdmin = () => {
     setPreviewUrl(null);
     setEditActivity(null);
     setIsCreating(false);
+    setShowForm(false);
   };
 
   // Set form for editing
@@ -102,12 +168,14 @@ const ActivitiesAdmin = () => {
     setDisplayOn(activity.display_on);
     setPreviewUrl(activity.image_path || null);
     setIsCreating(false);
+    setShowForm(true);
   };
 
   // Set form for creating
   const handleCreate = () => {
     resetForm();
     setIsCreating(true);
+    setShowForm(true);
   };
 
   // Handle form submission
@@ -117,52 +185,39 @@ const ActivitiesAdmin = () => {
     setError(null);
     setSuccessMessage(null);
 
-    // Log all field values and their lengths for debugging
-    console.log('Form Submission Values:', {
-      title: title.length,
-      description: description.length,
-      displayOn: displayOn.length
-    });
-
-    // Validate form fields
-    const errors: Partial<Record<keyof Omit<Activity, 'id' | 'created_at' | 'updated_at' | 'image_path' | 'order_index'>, string>> = {};
-    if (!title) errors.title = 'Title is required';
-    if (description && description.length > 130) errors.description = 'Description must not exceed 130 characters';
-    if (title && title.length > 255) errors.title = 'Title must not exceed 255 characters';
-
-    if (Object.keys(errors).length > 0) {
-      setError('Please fill in all required fields: Title and Description.');
+    if (!title.trim() || !description.trim()) {
+      setError('Please fill in all required fields.');
       setIsSubmitting(false);
       return;
     }
 
-    if (!title || !description) {
-      setError('Please fill in all required fields: Title and Description.');
+    if (description.length > 130) {
+      setError('Description must not exceed 130 characters.');
       setIsSubmitting(false);
       return;
     }
 
     try {
       if (editActivity) {
-        // Update existing activity
         await updateActivity(
           editActivity.id, 
-          { title, description, display_on: displayOn },
+          { title: title.trim(), description: description.trim(), display_on: displayOn },
           imageFile || undefined
         );
-        setSuccessMessage('Activity updated successfully');
+        setSuccessMessage('Activity updated successfully!');
       } else {
-        // Create new activity
         await createActivity(
-          { title, description, display_on: displayOn },
+          { title: title.trim(), description: description.trim(), display_on: displayOn },
           imageFile || undefined
         );
-        setSuccessMessage('Activity created successfully');
+        setSuccessMessage('Activity created successfully!');
       }
       
-      // Reset form and reload activities
       resetForm();
       await loadActivities();
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err: any) {
       console.error('Error saving activity:', err);
       setError('Failed to save activity. Please try again.');
@@ -182,9 +237,8 @@ const ActivitiesAdmin = () => {
     try {
       await deleteActivity(id);
       setActivities(activities.filter(activity => activity.id !== id));
-      setSuccessMessage('Activity deleted successfully');
+      setSuccessMessage('Activity deleted successfully!');
       
-      // Clear success message after 3 seconds
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err: any) {
       setError('Failed to delete activity. Please try again.');
@@ -193,142 +247,159 @@ const ActivitiesAdmin = () => {
     }
   };
 
-  // Handle moving an activity up in the order
-  const handleMoveUp = async (index: number) => {
-    if (index <= 0) return; // Already at the top
-    
-    // Create a copy of activities
-    const items = Array.from(activities);
-    // Swap the item with the one above it
-    [items[index], items[index - 1]] = [items[index - 1], items[index]];
-    
-    // Update the state immediately for a responsive UI
-    setActivities(items);
-    
-    try {
-      // Update the sort_order for the two affected items
-      await Promise.all([
-        updateActivityOrder(items[index - 1].id, index),
-        updateActivityOrder(items[index].id, index + 1)
-      ]);
-      
-      setSuccessMessage('Activity order updated');
-      setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      console.error('Failed to update activity order:', err);
-      setError(`Failed to update activity order: ${err.message || 'Unknown error'}`);
-      loadActivities(); // Reload to restore original order
+  // Get display icon based on display_on value
+  const getDisplayIcon = (displayOn: string) => {
+    switch (displayOn) {
+      case 'home':
+        return <Home size={16} />;
+      case 'activities':
+        return <ActivityIcon size={16} />;
+      case 'both':
+        return <Grid3X3 size={16} />;
+      default:
+        return <Eye size={16} />;
     }
   };
-  
-  // Handle moving an activity down in the order
-  const handleMoveDown = async (index: number) => {
-    if (index >= activities.length - 1) return; // Already at the bottom
-    
-    // Create a copy of activities
-    const items = Array.from(activities);
-    // Swap the item with the one below it
-    [items[index], items[index + 1]] = [items[index + 1], items[index]];
-    
-    // Update the state immediately for a responsive UI
-    setActivities(items);
-    
-    try {
-      // Update the sort_order for the two affected items
-      await Promise.all([
-        updateActivityOrder(items[index].id, index + 1),
-        updateActivityOrder(items[index + 1].id, index + 2)
-      ]);
-      
-      setSuccessMessage('Activity order updated');
-      setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      console.error('Failed to update activity order:', err);
-      setError(`Failed to update activity order: ${err.message || 'Unknown error'}`);
-      loadActivities(); // Reload to restore original order
+
+  // Get display label
+  const getDisplayLabel = (displayOn: string) => {
+    switch (displayOn) {
+      case 'home':
+        return 'Home Page';
+      case 'activities':
+        return 'Activities Page';
+      case 'both':
+        return 'Both Pages';
+      default:
+        return 'Unknown';
     }
   };
 
   return (
     <AdminLayout>
-      <div className="space-y-4 sm:space-y-6">
-        <div className="flex items-center justify-between">
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
           <h1 className="text-3xl font-bold text-white">Activities Management</h1>
+            <p className="text-white/70 mt-1">Manage your community activities and events</p>
+          </div>
           
-          {!isCreating && !editActivity && (
             <button
               onClick={handleCreate}
-              className="flex items-center px-4 py-2 bg-[#4f7df9] text-white rounded-lg hover:bg-[#3a6eea] transition-colors"
+            className="flex items-center px-4 py-2 bg-[#4f7df9] text-white rounded-lg hover:bg-[#3a6eea] transition-colors shadow-lg"
             >
               <Plus size={18} className="mr-2" />
-              Add New Activity
+            Add Activity
             </button>
-          )}
         </div>
 
         {/* Success and Error Messages */}
         {successMessage && (
-          <div className="mb-4 p-3 bg-green-900/50 text-green-200 rounded-md border border-green-700">{successMessage}</div>
+          <div className="flex items-center p-4 bg-green-900/20 border border-green-500/30 rounded-lg">
+            <CheckCircle className="text-green-400 mr-3" size={20} />
+            <span className="text-green-200">{successMessage}</span>
+          </div>
         )}
         
         {error && (
-          <div className="mb-4 p-3 bg-red-900/50 text-red-200 rounded-md border border-red-700">{error}</div>
+          <div className="flex items-center p-4 bg-red-900/20 border border-red-500/30 rounded-lg">
+            <AlertCircle className="text-red-400 mr-3" size={20} />
+            <span className="text-red-200">{error}</span>
+          </div>
         )}
 
+        {/* Search and Filter Bar */}
+        <div className="bg-[#1a365d]/50 backdrop-blur-sm rounded-lg p-4 border border-white/10">
+          <div className="flex flex-col sm:flex-row gap-4">
+            {/* Search */}
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/50" size={18} />
+              <input
+                type="text"
+                placeholder="Search activities..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-[#4f7df9]/50"
+              />
+            </div>
+
+            {/* Filter */}
+            <div className="relative">
+              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/50" size={18} />
+              <select
+                value={filterDisplay}
+                onChange={(e) => setFilterDisplay(e.target.value as any)}
+                className="pl-10 pr-8 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#4f7df9]/50 appearance-none"
+              >
+                <option value="all">All Locations</option>
+                <option value="home">Home Page Only</option>
+                <option value="activities">Activities Page Only</option>
+                <option value="both">Both Pages</option>
+              </select>
+            </div>
+
+            {/* View Mode Toggle */}
+            <div className="flex bg-white/10 rounded-lg p-1">
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`p-2 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-[#4f7df9] text-white' : 'text-white/70 hover:text-white'}`}
+              >
+                <Grid3X3 size={18} />
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`p-2 rounded-md transition-colors ${viewMode === 'list' ? 'bg-[#4f7df9] text-white' : 'text-white/70 hover:text-white'}`}
+              >
+                <List size={18} />
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* Activity Form */}
-        {(isCreating || editActivity) && (
-          <div className="bg-[#102a4c]/60 backdrop-blur-sm rounded-lg shadow-md p-6 mb-8 border border-white/10 text-white">
+        {showForm && (
+          <div className="bg-[#1a365d]/80 backdrop-blur-sm rounded-lg shadow-lg border border-white/10">
+            <div className="p-6">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-semibold text-white">
                 {editActivity ? 'Edit Activity' : 'Create New Activity'}
               </h2>
               <button
                 onClick={resetForm}
-                className="p-2 text-white/70 hover:text-white rounded-full hover:bg-white/10"
-                title="Cancel"
+                  className="p-2 text-white/70 hover:text-white rounded-full hover:bg-white/10 transition-colors"
               >
                 <X size={20} />
               </button>
             </div>
             
-            <form onSubmit={(e) => {
-              e.preventDefault();
-              if (description.length > 130) {
-                setError('Description exceeds 130 characters');
-                return;
-              }
-              handleSubmit(e);
-            }} className="space-y-3 sm:space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Left Column - Text Fields */}
+                  <div className="space-y-4">
               <div>
-                <label className="block text-white text-xs sm:text-sm font-medium mb-1 sm:mb-2">Title</label>
+                      <label className="block text-sm font-medium text-white mb-2">Title *</label>
                 <input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-2 py-1.5 sm:px-3 sm:py-2 bg-white/10 border border-white/20 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#4f7df9]/50"
-                  placeholder="Activity title"
+                        className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-[#4f7df9]/50"
+                        placeholder="Enter activity title"
                   required
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-white/90 mb-1">
-                  Description
-                </label>
+                      <label className="block text-sm font-medium text-white mb-2">Description *</label>
                 <div className="relative">
                   <textarea
                     value={description}
-                    onChange={(e) => {
-                      // Limit to 130 characters
-                      if (e.target.value.length <= 130) {
-                        setDescription(e.target.value);
-                      }
-                    }}
-                    className="w-full p-2 bg-[#1a3a5f]/80 border border-white/20 rounded-md focus:ring-[#4f7df9] focus:border-[#4f7df9] text-white min-h-[100px]"
+                          onChange={(e) => setDescription(e.target.value)}
+                          className="w-full p-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-[#4f7df9]/50 min-h-[120px] resize-none"
+                          placeholder="Enter activity description (max 130 characters)"
                     maxLength={130}
                     required
-                    placeholder="Enter activity description (max 130 characters)"
-                  ></textarea>
+                        />
                   <div className="text-xs text-right mt-1 text-white/60">
                     {description.length}/130 characters
                   </div>
@@ -336,56 +407,78 @@ const ActivitiesAdmin = () => {
               </div>
               
               <div>
-                <label className="block text-white text-xs sm:text-sm font-medium mb-1 sm:mb-2">Display On</label>
+                      <label className="block text-sm font-medium text-white mb-2">Display Location</label>
                 <select
                   value={displayOn}
-                  onChange={(e) => setDisplayOn(e.target.value as 'home' | 'activities' | 'both')}
-                  className="w-full px-2 py-1.5 sm:px-3 sm:py-2 bg-white/10 border border-white/20 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#4f7df9]/50"
+                        onChange={(e) => setDisplayOn(e.target.value as any)}
+                        className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#4f7df9]/50"
                 >
+                        <option value="both">Both Pages</option>
                   <option value="home">Home Page Only</option>
                   <option value="activities">Activities Page Only</option>
-                  <option value="both">Both Pages</option>
                 </select>
+                    </div>
               </div>
               
+                  {/* Right Column - Image Upload */}
+                  <div className="space-y-4">
               <div>
-                <label className="block text-white text-xs sm:text-sm font-medium mb-1 sm:mb-2">Image</label>
-                <div className="flex flex-col gap-3">
-                  <div className="w-full">
-                    <div className="flex items-center justify-center w-full">
-                      <label className="flex flex-col items-center justify-center w-full h-[192px] border-2 border-white/20 border-dashed rounded-lg cursor-pointer bg-[#1a3a5f]/50 hover:bg-[#1a3a5f]/70">
-                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                          <FileImage className="w-8 h-8 mb-3 text-white/60" />
-                          <p className="mb-2 text-sm text-white/80">
-                            <span className="font-semibold">Click to upload</span> or drag and drop
-                          </p>
-                          <p className="text-xs text-white/60">PNG, JPG or WEBP (MAX. 2MB)</p>
-                        </div>
+                      <label className="block text-sm font-medium text-white mb-2">Activity Image</label>
+                      <div
+                        className={`w-full h-[192px] border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
+                          isDragging 
+                            ? 'border-[#4f7df9] bg-[#4f7df9]/10' 
+                            : 'border-white/30 hover:border-white/50 bg-white/5'
+                        }`}
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}
+                      >
                         <input 
                           type="file" 
                           className="hidden" 
                           accept="image/*"
-                          onChange={handleImageChange}
+                          onChange={handleFileInput}
                         />
-                      </label>
-                    </div>
-                  </div>
                   
-                  {previewUrl && (
-                    <div className="w-[384px] h-[192px] relative rounded-md overflow-hidden border border-white/20 flex-shrink-0">
+                        {previewUrl ? (
+                          <div className="relative w-full h-full">
                       <img 
                         src={previewUrl} 
                         alt="Preview" 
-                        className="w-full h-full object-cover"
-                        width="384"
-                        height="192"
-                      />
+                              className="w-full h-full object-cover rounded-lg"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setImageFile(null);
+                                setPreviewUrl(null);
+                              }}
+                              className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                            >
+                              <X size={16} />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center h-full text-white/70">
+                            <Upload size={32} className="mb-2" />
+                            <p className="text-sm font-medium">Drop image here or click to upload</p>
+                            <p className="text-xs mt-1">384x192 pixels required</p>
                     </div>
                   )}
+                      </div>
+                    </div>
                 </div>
               </div>
               
-              <div className="flex justify-end mt-6">
+                <div className="flex justify-end gap-3 pt-4 border-t border-white/10">
+                  <button
+                    type="button"
+                    onClick={resetForm}
+                    className="px-4 py-2 text-white/70 hover:text-white border border-white/20 rounded-lg hover:bg-white/10 transition-colors"
+                  >
+                    Cancel
+                  </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
@@ -399,124 +492,125 @@ const ActivitiesAdmin = () => {
                   ) : (
                     <>
                       <Save className="mr-2" size={18} />
-                      Save Activity
+                        {editActivity ? 'Update Activity' : 'Create Activity'}
                     </>
                   )}
                 </button>
               </div>
             </form>
+            </div>
           </div>
         )}
 
         {/* Activities List */}
-        {!isCreating && !editActivity && (
-          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 sm:p-6 border border-white/20 shadow">
-            <h2 className="text-lg sm:text-xl font-semibold text-white mb-3 sm:mb-4">All Activities</h2>
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-3">
-              <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={handleCreate}
-                  className="px-2 py-1.5 sm:px-3 sm:py-2 bg-[#4f7df9] text-white rounded-md hover:bg-[#4f7df9]/80 transition-colors flex items-center text-xs sm:text-sm"
-                >
-                  <Plus size={14} className="mr-1" />
-                  Add Activity
-                </button>
-              </div>
+        <div className="bg-[#1a365d]/50 backdrop-blur-sm rounded-lg border border-white/10">
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-white">
+                Activities ({filteredActivities.length})
+              </h2>
             </div>
             
             {isLoading ? (
               <div className="flex justify-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#4f7df9]"></div>
+                <div className="flex flex-col items-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#4f7df9] mb-4"></div>
+                  <p className="text-white/70">Loading activities...</p>
               </div>
-            ) : error ? (
-              <div className="bg-red-50 p-4 rounded-xl text-red-600">
-                {error}
               </div>
-            ) : activities.length === 0 ? (
-              <div className="bg-white/10 p-4 rounded-lg text-white/70 text-center">
-                No activities found
+            ) : filteredActivities.length === 0 ? (
+              <div className="text-center py-12">
+                <ImageIcon className="mx-auto text-white/40 mb-4" size={48} />
+                <h3 className="text-lg font-medium text-white/70 mb-2">
+                  {searchTerm || filterDisplay !== 'all' ? 'No activities found' : 'No activities yet'}
+                </h3>
+                <p className="text-white/50 mb-4">
+                  {searchTerm || filterDisplay !== 'all' 
+                    ? 'Try adjusting your search or filters' 
+                    : 'Create your first activity to get started'
+                  }
+                </p>
+                {!searchTerm && filterDisplay === 'all' && (
+                  <button
+                    onClick={handleCreate}
+                    className="flex items-center mx-auto px-4 py-2 bg-[#4f7df9] text-white rounded-lg hover:bg-[#3a6eea] transition-colors"
+                  >
+                    <Plus size={18} className="mr-2" />
+                    Create First Activity
+                  </button>
+                )}
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                {activities.slice(0, visibleItems).map((activity, index) => (
+              <div className={viewMode === 'grid' 
+                ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' 
+                : 'space-y-4'
+              }>
+                {filteredActivities.map((activity) => (
                   <div 
                     key={activity.id} 
-                    className="bg-white/10 rounded-lg overflow-hidden relative group border border-white/20 w-fit mx-auto"
+                    className={`bg-white/10 rounded-lg overflow-hidden border border-white/20 hover:border-white/30 transition-all duration-200 group ${
+                      viewMode === 'list' ? 'flex' : ''
+                    }`}
                   >
+                    {/* Image */}
+                    <div className={`${viewMode === 'list' ? 'w-48 flex-shrink-0' : ''}`}>
                     {activity.image_path ? (
                       <img
                         src={activity.image_path}
-                        alt={activity.title || 'Activity image'}
-                        className="w-[384px] h-[192px] object-cover"
-                        loading="eager"
+                          alt={activity.title}
+                          className={`${viewMode === 'list' ? 'w-full h-32' : 'w-full h-48'} object-cover`}
+                          loading="lazy"
                       />
                     ) : (
-                      <div className="w-full h-48 bg-[#102a4c] flex items-center justify-center">
-                        <FileImage className="text-white/40" size={32} />
+                        <div className={`${viewMode === 'list' ? 'w-full h-32' : 'w-full h-48'} bg-[#102a4c] flex items-center justify-center`}>
+                          <ImageIcon className="text-white/40" size={32} />
                       </div>
                     )}
-                    <div className="flex-1">
-                      <div className="p-4">
-                        <h3 className="text-sm font-medium text-white">{activity.title}</h3>
-                        <p className="text-xs text-white/70 mt-2 line-clamp-3">
-                          {activity.description}
-                        </p>
-                        <span className="inline-block px-2 py-1 mt-3 bg-[#4f7df9]/30 text-white text-xs rounded-full capitalize">
-                          {activity.display_on === 'both'
-                            ? 'Home & Activities'
-                            : activity.display_on === 'home'
-                            ? 'Home Page'
-                            : 'Activities Page'}
-                        </span>
-                      </div>
                     </div>
-                    <div className="absolute right-2 top-2 flex space-x-1">
-                      <div className="flex flex-col space-y-0.5">
-                        <button
-                          onClick={() => handleMoveUp(index)}
-                          disabled={index === 0}
-                          className={`bg-gray-700/80 text-white p-1 rounded-t-md opacity-0 group-hover:opacity-100 transition-opacity ${index === 0 ? 'cursor-not-allowed opacity-50' : ''}`}
-                          title="Move up"
-                        >
-                          <ChevronUp size={14} />
-                        </button>
-                        <button
-                          onClick={() => handleMoveDown(index)}
-                          disabled={index === activities.length - 1}
-                          className={`bg-gray-700/80 text-white p-1 rounded-b-md opacity-0 group-hover:opacity-100 transition-opacity ${index === activities.length - 1 ? 'cursor-not-allowed opacity-50' : ''}`}
-                          title="Move down"
-                        >
-                          <ChevronDown size={14} />
-                        </button>
-                      </div>
+
+                    {/* Content */}
+                    <div className="flex-1 p-4">
+                      <div className="flex items-start justify-between mb-3">
+                        <h3 className="font-medium text-white line-clamp-2">{activity.title}</h3>
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={() => handleEdit(activity)}
-                        className="bg-[#4f7df9]/80 text-white p-1.5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="p-1.5 text-white/70 hover:text-white hover:bg-white/10 rounded-md transition-colors"
                         title="Edit activity"
                       >
                         <Pencil size={16} />
                       </button>
                       <button
                         onClick={() => handleDelete(activity.id)}
-                        className="bg-red-500 text-white p-1.5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-md transition-colors"
                         title="Delete activity"
                       >
                         <Trash2 size={16} />
                       </button>
+                        </div>
+                      </div>
+                      
+                      <p className="text-sm text-white/70 line-clamp-3 mb-3">
+                        {activity.description}
+                      </p>
+                      
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-xs text-white/60">
+                          {getDisplayIcon(activity.display_on)}
+                          <span>{getDisplayLabel(activity.display_on)}</span>
+                        </div>
+                        
+                        <div className="text-xs text-white/40">
+                          {new Date(activity.created_at).toLocaleDateString()}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
             )}
-            {!isLoading && visibleItems < activities.length && (
-              <div className="text-center mt-6">
-                <button onClick={handleLoadMore} className="bg-[#073366] hover:bg-[#041d40] text-white px-4 py-2 rounded-lg transition-colors duration-200">
-                  Load More ({visibleItems}/{activities.length})
-                </button>
-              </div>
-            )}
           </div>
-        )}
+        </div>
       </div>
     </AdminLayout>
   );

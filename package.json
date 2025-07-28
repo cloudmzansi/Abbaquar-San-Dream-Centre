@@ -16,7 +16,8 @@
     "performance:compare": "node scripts/performance-monitor.js --compare",
     "performance:test": "node scripts/test-performance.js",
     "cache:clear": "node -e \"localStorage.clear(); console.log('Cache cleared')\"",
-    "health:check": "node scripts/health-check.js"
+    "health:check": "node scripts/health-check.js",
+    "scheduled:tasks": "node scripts/run-scheduled-tasks.js"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
@@ -37,6 +38,7 @@
     "clsx": "^2.1.0",
     "crypto-js": "^4.2.0",
     "date-fns": "^2.30.0",
+    "dotenv": "^17.2.1",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.395.0",
     "next-themes": "^0.2.1",
@@ -45,8 +47,10 @@
     "react-beautiful-dnd": "^13.1.1",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.22.0",
+    "react-window": "^1.8.11",
     "sonner": "^1.4.0",
     "swiper": "^11.0.6",
+    "swr": "^2.3.4",
     "tailwind-merge": "^2.2.1",
     "tailwindcss-animate": "^1.0.7",
     "uuid": "^11.1.0",

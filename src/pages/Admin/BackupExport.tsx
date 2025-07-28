@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { supabase } from '@/lib/supabase';
-import { Download, Upload, Database, FileText, Calendar, Image, Mail, Save } from 'lucide-react';
+import { Download, Upload, Database, FileText, Calendar, Image, Save, Clock, AlertCircle, CheckCircle } from 'lucide-react';
 
 interface BackupData {
   gallery: any[];
   activities: any[];
   events: any[];
-  contact_messages: any[];
   timestamp: string;
   version: string;
 }
@@ -24,23 +23,20 @@ const BackupExport = () => {
 
     try {
       // Fetch all data from each table
-      const [galleryData, activitiesData, eventsData, messagesData] = await Promise.all([
+      const [galleryData, activitiesData, eventsData] = await Promise.all([
         supabase.from('gallery').select('*'),
         supabase.from('activities').select('*'),
-        supabase.from('events').select('*'),
-        supabase.from('contact_messages').select('*')
+        supabase.from('events').select('*')
       ]);
 
       if (galleryData.error) throw galleryData.error;
       if (activitiesData.error) throw activitiesData.error;
       if (eventsData.error) throw eventsData.error;
-      if (messagesData.error) throw messagesData.error;
 
       const backupData: BackupData = {
         gallery: galleryData.data || [],
         activities: activitiesData.data || [],
         events: eventsData.data || [],
-        contact_messages: messagesData.data || [],
         timestamp: new Date().toISOString(),
         version: '1.0'
       };
@@ -78,7 +74,7 @@ const BackupExport = () => {
       const backupData: BackupData = JSON.parse(text);
 
       // Validate backup data structure
-      if (!backupData.gallery || !backupData.activities || !backupData.events || !backupData.contact_messages) {
+      if (!backupData.gallery || !backupData.activities || !backupData.events) {
         throw new Error('Invalid backup file format');
       }
 
@@ -91,8 +87,7 @@ const BackupExport = () => {
       const results = await Promise.all([
         supabase.from('gallery').delete().neq('id', '00000000-0000-0000-0000-000000000000'), // Delete all except dummy
         supabase.from('activities').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
-        supabase.from('events').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
-        supabase.from('contact_messages').delete().neq('id', '00000000-0000-0000-0000-000000000000')
+        supabase.from('events').delete().neq('id', '00000000-0000-0000-0000-000000000000')
       ]);
 
       // Check for delete errors
@@ -104,8 +99,7 @@ const BackupExport = () => {
       const insertResults = await Promise.all([
         backupData.gallery.length > 0 ? supabase.from('gallery').insert(backupData.gallery) : Promise.resolve({ error: null }),
         backupData.activities.length > 0 ? supabase.from('activities').insert(backupData.activities) : Promise.resolve({ error: null }),
-        backupData.events.length > 0 ? supabase.from('events').insert(backupData.events) : Promise.resolve({ error: null }),
-        backupData.contact_messages.length > 0 ? supabase.from('contact_messages').insert(backupData.contact_messages) : Promise.resolve({ error: null })
+        backupData.events.length > 0 ? supabase.from('events').insert(backupData.events) : Promise.resolve({ error: null })
       ]);
 
       // Check for insert errors
@@ -142,29 +136,36 @@ const BackupExport = () => {
 
         {/* Success/Error Messages */}
         {message && (
-          <div className={`p-4 rounded-lg ${
+          <div className={`p-4 rounded-lg border ${
             message.type === 'success' 
-              ? 'bg-green-50 text-green-600 border border-green-200' 
-              : 'bg-red-50 text-red-600 border border-red-200'
+              ? 'bg-green-500/10 text-green-400 border-green-500/20' 
+              : 'bg-red-500/10 text-red-400 border-red-500/20'
           }`}>
-            {message.text}
+            <div className="flex items-center">
+              {message.type === 'success' ? (
+                <CheckCircle className="w-5 h-5 mr-2" />
+              ) : (
+                <AlertCircle className="w-5 h-5 mr-2" />
+              )}
+              {message.text}
+            </div>
           </div>
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Export Section */}
-          <div className="bg-white/10 backdrop-blur-sm rounded-lg shadow border border-white/20 p-6">
+          <div className="bg-[#1a365d]/80 backdrop-blur-sm rounded-lg shadow-lg border border-white/10 p-6">
             <div className="flex items-center mb-4">
               <Download className="w-6 h-6 text-[#4f7df9] mr-3" />
               <h2 className="text-xl font-semibold text-white">Export Data</h2>
             </div>
             <p className="text-white/70 mb-4">
-              Download all your content as a JSON backup file. This includes gallery images, activities, events, and contact messages.
+              Download all your content as a JSON backup file. This includes gallery images, activities, and events.
             </p>
             <button
               onClick={exportData}
               disabled={isExporting}
-              className="w-full flex items-center justify-center px-4 py-3 bg-[#4f7df9] text-white rounded-lg hover:bg-[#4f7df9]/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center px-4 py-3 bg-[#4f7df9] text-white rounded-lg hover:bg-[#4f7df9]/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#4f7df9]/50"
             >
               {isExporting ? (
                 <>
@@ -181,7 +182,7 @@ const BackupExport = () => {
           </div>
 
           {/* Import Section */}
-          <div className="bg-white/10 backdrop-blur-sm rounded-lg shadow border border-white/20 p-6">
+          <div className="bg-[#1a365d]/80 backdrop-blur-sm rounded-lg shadow-lg border border-white/10 p-6">
             <div className="flex items-center mb-4">
               <Upload className="w-6 h-6 text-[#4f7df9] mr-3" />
               <h2 className="text-xl font-semibold text-white">Import Data</h2>
@@ -189,7 +190,7 @@ const BackupExport = () => {
             <p className="text-white/70 mb-4">
               Import data from a backup file. This will replace all current content, so make sure to export first.
             </p>
-            <label className="w-full flex items-center justify-center px-4 py-3 bg-[#4f7df9] text-white rounded-lg hover:bg-[#4f7df9]/80 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+            <label className="w-full flex items-center justify-center px-4 py-3 bg-[#4f7df9] text-white rounded-lg hover:bg-[#4f7df9]/80 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#4f7df9]/50">
               {isImporting ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
@@ -213,37 +214,37 @@ const BackupExport = () => {
         </div>
 
         {/* Data Overview */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-lg shadow border border-white/20 p-6">
-          <div className="flex items-center mb-4">
+        <div className="bg-[#1a365d]/80 backdrop-blur-sm rounded-lg shadow-lg border border-white/10 p-6">
+          <div className="flex items-center mb-6">
             <Database className="w-6 h-6 text-[#4f7df9] mr-3" />
             <h2 className="text-xl font-semibold text-white">Data Overview</h2>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center p-4 bg-white/5 rounded-lg">
+            <div className="text-center p-4 bg-white/5 rounded-lg border border-white/10">
               <Image className="w-8 h-8 text-blue-400 mx-auto mb-2" />
               <p className="text-white font-semibold">Gallery Images</p>
               <p className="text-white/70 text-sm">Photos & media</p>
             </div>
-            <div className="text-center p-4 bg-white/5 rounded-lg">
+            <div className="text-center p-4 bg-white/5 rounded-lg border border-white/10">
               <FileText className="w-8 h-8 text-green-400 mx-auto mb-2" />
               <p className="text-white font-semibold">Activities</p>
               <p className="text-white/70 text-sm">Programmes & services</p>
             </div>
-            <div className="text-center p-4 bg-white/5 rounded-lg">
+            <div className="text-center p-4 bg-white/5 rounded-lg border border-white/10">
               <Calendar className="w-8 h-8 text-purple-400 mx-auto mb-2" />
               <p className="text-white font-semibold">Events</p>
               <p className="text-white/70 text-sm">Upcoming events</p>
             </div>
-            <div className="text-center p-4 bg-white/5 rounded-lg">
-              <Mail className="w-8 h-8 text-orange-400 mx-auto mb-2" />
-              <p className="text-white font-semibold">Messages</p>
-              <p className="text-white/70 text-sm">Contact form submissions</p>
+            <div className="text-center p-4 bg-white/5 rounded-lg border border-white/10">
+              <Clock className="w-8 h-8 text-orange-400 mx-auto mb-2" />
+              <p className="text-white font-semibold">Scheduled</p>
+              <p className="text-white/70 text-sm">Auto-publishing</p>
             </div>
           </div>
         </div>
 
         {/* Instructions */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-lg shadow border border-white/20 p-6">
+        <div className="bg-[#1a365d]/80 backdrop-blur-sm rounded-lg shadow-lg border border-white/10 p-6">
           <h3 className="text-lg font-semibold text-white mb-4">Backup Instructions</h3>
           <div className="space-y-3 text-white/70">
             <div className="flex items-start">

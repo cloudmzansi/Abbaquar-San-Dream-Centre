@@ -9,6 +9,7 @@ const BUCKET_NAME = 'events';
 /**
  * Get events with optional filtering by display location
  * Uses enhanced caching to reduce API calls and improve performance
+ * Only returns published, non-archived events that have reached their publish time
  */
 export async function getEvents(displayOn?: 'home' | 'events' | 'both'): Promise<Event[]> {
   const cacheKey = `events_${displayOn || 'all'}`;
@@ -17,12 +18,12 @@ export async function getEvents(displayOn?: 'home' | 'events' | 'both'): Promise
     try {
       let query = supabase.from('events')
         .select('*')
+        .eq('is_archived', false)
+        .eq('status', 'published')
+        .or(`publish_at.is.null,publish_at.lte.${new Date().toISOString()}`)
         .order('date', { ascending: true });
       
-      if (displayOn) {
-        // Use more efficient query with indexed columns
-        query = query.or(`display_on.eq.${displayOn},display_on.eq.both`);
-      }
+      // Since all events are now displayed on home page, we don't filter by display_on
       
       const { data, error } = await query;
       
@@ -41,13 +42,8 @@ export async function getEvents(displayOn?: 'home' | 'events' | 'both'): Promise
             return [] as Event[];
           });
         
-        // Filter sample events based on displayOn parameter
+        // Since all events are now displayed on home page, we don't filter by display_on
         let filteredEvents = sampleEvents;
-        if (displayOn && displayOn !== 'both') {
-          filteredEvents = sampleEvents.filter(event => 
-            event.display_on === displayOn || event.display_on === 'both'
-          );
-        }
         
         return filteredEvents;
       }
@@ -67,13 +63,8 @@ export async function getEvents(displayOn?: 'home' | 'events' | 'both'): Promise
         const sampleEvents = await import('../data/sampleEvents.json')
           .then(module => module.default as Event[]);
         
-        // Filter sample events based on displayOn parameter
+        // Since all events are now displayed on home page, we don't filter by display_on
         let filteredEvents = sampleEvents;
-        if (displayOn && displayOn !== 'both') {
-          filteredEvents = sampleEvents.filter(event => 
-            event.display_on === displayOn || event.display_on === 'both'
-          );
-        }
         
         return filteredEvents;
       } catch (fallbackError) {
@@ -96,9 +87,7 @@ export async function getEventsPaginated(
     try {
       let query = supabase.from('events').select('*', { count: 'exact' });
       
-      if (displayOn) {
-        query = query.or(`display_on.eq.${displayOn},display_on.eq.both`);
-      }
+      // Since all events are now displayed on home page, we don't filter by display_on
       
       // Add pagination
       const from = (page - 1) * limit;
@@ -220,6 +209,17 @@ export async function updateEvent(
   if (!authed) {
     throw new Error('You must be logged in to update events.');
   }
+  
+  console.log('Updating event with ID:', id);
+  console.log('Updates:', updates);
+  console.log('Authentication status:', authed);
+  
+  // Check current user
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  console.log('Current user:', user);
+  if (userError) {
+    console.error('Error getting user:', userError);
+  }
   let filePath = updates.image_path;
   
   // If there's a new image file, upload it first
@@ -244,7 +244,26 @@ export async function updateEvent(
     }
   }
   
+  // First, let's check if the event exists
+  const { data: existingEvent, error: fetchError } = await supabase
+    .from('events')
+    .select('*')
+    .eq('id', id)
+    .single();
+    
+  if (fetchError) {
+    console.error('Error fetching existing event:', fetchError);
+    throw new Error(`Event not found: ${fetchError.message}`);
+  }
+  
+  console.log('Existing event found:', existingEvent);
+  
   // Update the event record
+  console.log('Attempting to update event with data:', {
+    ...updates,
+    image_path: filePath
+  });
+  
   const { data, error } = await supabase
     .from('events')
     .update({
@@ -252,21 +271,33 @@ export async function updateEvent(
       image_path: filePath
     })
     .eq('id', id)
-    .select()
-    .single();
+    .select();
+    
+  console.log('Update result - data:', data);
+  console.log('Update result - error:', error);
     
   if (error) {
     console.error('Error updating event:', error);
     throw error;
   }
   
+  if (!data || data.length === 0) {
+    throw new Error('Event not found or no rows were updated');
+  }
+  
+  if (data.length > 1) {
+    console.warn('Multiple events found with the same ID:', id);
+  }
+  
+  const updatedEvent = data[0];
+  
   // Invalidate related caches
   invalidateCachePattern('events_');
   invalidateCachePattern(`event_${id}`);
   
   return {
-    ...data,
-    image_path: data.image_path ? getOptimizedImageUrl(BUCKET_NAME, data.image_path) : undefined
+    ...updatedEvent,
+    image_path: updatedEvent.image_path ? getOptimizedImageUrl(BUCKET_NAME, updatedEvent.image_path) : undefined
   };
 }
 
@@ -315,4 +346,156 @@ export async function deleteEvent(id: string): Promise<void> {
   // Invalidate related caches
   invalidateCachePattern('events_');
   invalidateCachePattern(`event_${id}`);
+}
+
+// Get all events for admin (including archived and draft events)
+export async function getAllEventsForAdmin(): Promise<Event[]> {
+  const authed = await isAuthenticated();
+  if (!authed) {
+    throw new Error('You must be logged in to access admin functions.');
+  }
+  
+  const cacheKey = 'events_admin_all';
+  
+  return getCachedData(cacheKey, async () => {
+    try {
+      const { data, error } = await supabase
+        .from('events')
+        .select('*')
+        .order('date', { ascending: true });
+        
+      if (error) {
+        console.error('Error fetching all events for admin:', error);
+        throw error;
+      }
+      
+      // Transform data to include optimized image URLs
+      const transformedData = data.map(event => ({
+        ...event,
+        image_path: event.image_path ? getOptimizedImageUrl(BUCKET_NAME, event.image_path) : undefined
+      }));
+      
+      return transformedData;
+    } catch (error) {
+      console.error('Error in getAllEventsForAdmin:', error);
+      throw error;
+    }
+  }, 2 * 60 * 1000); // 2 minute cache for admin data
+}
+
+// Get archived events for admin
+export async function getArchivedEvents(): Promise<Event[]> {
+  const authed = await isAuthenticated();
+  if (!authed) {
+    throw new Error('You must be logged in to access archived events.');
+  }
+  
+  const cacheKey = 'events_archived';
+  
+  return getCachedData(cacheKey, async () => {
+    try {
+      const { data, error } = await supabase
+        .from('events')
+        .select('*')
+        .eq('is_archived', true)
+        .order('date', { ascending: false });
+        
+      if (error) {
+        console.error('Error fetching archived events:', error);
+        throw error;
+      }
+      
+      // Transform data to include optimized image URLs
+      const transformedData = data.map(event => ({
+        ...event,
+        image_path: event.image_path ? getOptimizedImageUrl(BUCKET_NAME, event.image_path) : undefined
+      }));
+      
+      return transformedData;
+    } catch (error) {
+      console.error('Error in getArchivedEvents:', error);
+      throw error;
+    }
+  }, 5 * 60 * 1000); // 5 minute cache
+}
+
+// Archive an event (move to past events instead of deleting)
+export async function archiveEvent(id: string): Promise<void> {
+  const authed = await isAuthenticated();
+  if (!authed) {
+    throw new Error('You must be logged in to archive events.');
+  }
+  
+  const { error } = await supabase
+    .from('events')
+    .update({
+      is_archived: true,
+      archived_at: new Date().toISOString(),
+      status: 'archived'
+    })
+    .eq('id', id);
+    
+  if (error) {
+    console.error('Error archiving event:', error);
+    throw error;
+  }
+  
+  // Invalidate related caches
+  invalidateCachePattern('events_');
+  invalidateCachePattern(`event_${id}`);
+  invalidateCachePattern('events_archived');
+}
+
+// Unarchive an event (restore from past events)
+export async function unarchiveEvent(id: string): Promise<void> {
+  const authed = await isAuthenticated();
+  if (!authed) {
+    throw new Error('You must be logged in to unarchive events.');
+  }
+  
+  const { error } = await supabase
+    .from('events')
+    .update({
+      is_archived: false,
+      archived_at: null,
+      status: 'published'
+    })
+    .eq('id', id);
+    
+  if (error) {
+    console.error('Error unarchiving event:', error);
+    throw error;
+  }
+  
+  // Invalidate related caches
+  invalidateCachePattern('events_');
+  invalidateCachePattern(`event_${id}`);
+  invalidateCachePattern('events_archived');
+}
+
+// Run scheduled publishing and archiving functions
+export async function runScheduledTasks(): Promise<void> {
+  const authed = await isAuthenticated();
+  if (!authed) {
+    throw new Error('You must be logged in to run scheduled tasks.');
+  }
+  
+  try {
+    // Call the database functions to publish scheduled events and archive past events
+    const { error: publishError } = await supabase.rpc('publish_scheduled_events');
+    if (publishError) {
+      console.error('Error publishing scheduled events:', publishError);
+    }
+    
+    const { error: archiveError } = await supabase.rpc('archive_past_events');
+    if (archiveError) {
+      console.error('Error archiving past events:', archiveError);
+    }
+    
+    // Invalidate all event caches after running scheduled tasks
+    invalidateCachePattern('events_');
+  } catch (error) {
+    console.error('Error running scheduled tasks:', error);
+    throw error;
+  }
 } 
