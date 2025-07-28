@@ -27,64 +27,86 @@ if (!supabaseUrl || !supabaseAnonKey) {
   getOptimizedImageUrl = () => '';
   // Stop further initialization
   throw new Error('Supabase environment variables are not set. Please configure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file.');
-} else {
-  // Create a single supabase client for interacting with your database
-  // with optimized settings for better performance
-  supabase = createClient(supabaseUrl, supabaseAnonKey, {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: true
-    },
-    global: {
-      // Optimize fetch settings
-      fetch: (...args) => {
-        // @ts-ignore - args typing issue with fetch
-        return fetch(...args);
+}
+
+// Create a single supabase client for interacting with your database
+// with optimized settings for better performance
+supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true
+  },
+  global: {
+    // Optimize fetch settings with timeout and retry logic
+    fetch: async (...args) => {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+      
+      try {
+        const response = await fetch(...args, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        return response;
+      } catch (error) {
+        clearTimeout(timeoutId);
+        if (error instanceof Error && error.name === 'AbortError') {
+          throw new Error('Request timeout after 30 seconds');
+        }
+        throw error;
       }
     },
-    // Add better debug information in development
-    ...(process.env.NODE_ENV !== 'production' && {
-      debug: false // Set to true only when actively debugging Supabase issues
-    })
-  });
-
-  // Image URL cache to avoid redundant URL generation
-  const imageUrlCache = new Map<string, string>();
-
-  /**
-   * Get optimized image URL with transformations and caching
-   * @param bucket Storage bucket name
-   * @param path Path to the image in the bucket
-   * @param width Desired image width
-   * @param quality Image quality (1-100)
-   * @param format Image format (webp, jpeg, png)
-   * @returns Optimized image URL
-   */
-  getOptimizedImageUrl = (
-    bucket: string,
-    path: string,
-    width = 800,
-    quality = 80,
-    format = 'webp'
-  ): string => {
-    if (!path) return '';
-    
-    // Create a cache key based on all parameters
-    const cacheKey = `${bucket}/${path}/${width}/${quality}/${format}`;
-    
-    // Check if URL is already in cache
-    if (imageUrlCache.has(cacheKey)) {
-      return imageUrlCache.get(cacheKey) as string;
+    headers: { 
+      'X-Client-Info': 'abbaquar-web',
+      'Cache-Control': 'max-age=300' // 5 minute cache for GET requests
     }
-    
-    // Generate and cache the URL
-    const url = `${supabaseUrl}/storage/v1/object/public/${bucket}/${path}?width=${width}&quality=${quality}&format=${format}`;
-    imageUrlCache.set(cacheKey, url);
-    
-    return url;
-  }; 
-}
+  },
+  db: {
+    schema: 'public'
+  },
+  realtime: {
+    params: { eventsPerSecond: 10 }
+  },
+  // Add better debug information in development
+  ...(process.env.NODE_ENV !== 'production' && {
+    debug: false // Set to true only when actively debugging Supabase issues
+  })
+});
+
+// Image URL cache to avoid redundant URL generation
+const imageUrlCache = new Map<string, string>();
+
+/**
+ * Get optimized image URL with transformations and caching
+ * @param bucket Storage bucket name
+ * @param path Path to the image in the bucket
+ * @param width Desired image width
+ * @param quality Image quality (1-100)
+ * @param format Image format (webp, jpeg, png)
+ * @returns Optimized image URL
+ */
+getOptimizedImageUrl = (
+  bucket: string,
+  path: string,
+  width = 800,
+  quality = 80,
+  format = 'webp'
+): string => {
+  if (!path) return '';
+  
+  // Create a cache key based on all parameters
+  const cacheKey = `${bucket}/${path}/${width}/${quality}/${format}`;
+  
+  // Check if URL is already in cache
+  if (imageUrlCache.has(cacheKey)) {
+    return imageUrlCache.get(cacheKey) as string;
+  }
+  
+  // Generate and cache the URL
+  const url = `${supabaseUrl}/storage/v1/object/public/${bucket}/${path}?width=${width}&quality=${quality}&format=${format}`;
+  imageUrlCache.set(cacheKey, url);
+  
+  return url;
+};
 
 // Export variables outside conditional block
 export { supabase, getOptimizedImageUrl };

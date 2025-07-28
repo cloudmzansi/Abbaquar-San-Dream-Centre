@@ -2,14 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { PayFastService } from '@/lib/payfast';
-import { useDonationTracking } from '@/hooks/use-analytics';
+
 
 const Donate = () => {
   const [amount, setAmount] = useState("50.00");
   const [selectedAmount, setSelectedAmount] = useState("50.00");
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
-  const { handleDonationAttempt, handleDonationComplete } = useDonationTracking();
   
   // Reset form when user navigates back from PayFast
   useEffect(() => {
@@ -60,9 +59,6 @@ const Donate = () => {
     const cleanAmount = amount.replace(/[^0-9.]/g, '');
     const numericAmount = parseFloat(cleanAmount);
     const formattedAmount = numericAmount.toFixed(2);
-    
-    // Track donation attempt in ZAR
-    handleDonationAttempt(numericAmount, 'donate_page');
     
     // Set the amount in the hidden field
     const amountInput = document.getElementById('payfast-amount') as HTMLInputElement;

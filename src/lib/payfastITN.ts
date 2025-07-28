@@ -1,7 +1,7 @@
 import MD5 from 'crypto-js/md5';
 import encHex from 'crypto-js/enc-hex';
 import { supabase } from './supabase';
-import { trackDonationAnalytics } from './analyticsService';
+
 
 export interface PayFastITNData {
   m_payment_id: string;
@@ -146,16 +146,7 @@ export class PayFastITNService {
         return { success: false, message: 'Failed to store donation' };
       }
 
-      // Track successful donation in analytics
-      if (data.payment_status === 'COMPLETE') {
-        await trackDonationAnalytics(
-          'completed_donation', // Use a special session ID for completed donations
-          amountNet,
-          'payfast',
-          'itn_callback',
-          true // completed = true
-        );
-      }
+
 
       console.log(`Successfully processed donation: ${data.pf_payment_id}`);
       return { success: true, message: 'Payment processed successfully' };

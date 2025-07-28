@@ -2,57 +2,119 @@ import { supabase, getOptimizedImageUrl } from './supabase';
 import { Activity } from '@/types/supabase';
 import { v4 as uuidv4 } from 'uuid';
 import { convertToBestFormat } from './imageUtils';
+import { invalidateDashboardCache } from './dashboardService';
+import { getCachedData, invalidateCachePattern } from './cacheService';
 
 const BUCKET_NAME = 'activities';
 
 // Get activities with optional filtering by display location
 export async function getActivities(displayOn?: 'home' | 'activities' | 'both'): Promise<Activity[]> {
-  try {
-    let query = supabase.from('activities').select('*');
-    
-    if (displayOn) {
-      // If displayOn is specified, get items that match displayOn or 'both'
-      const filterCondition = `display_on.eq.${displayOn},display_on.eq.both`;
-      query = query.or(filterCondition);
+  const cacheKey = `activities_${displayOn || 'all'}`;
+  
+  return getCachedData(cacheKey, async () => {
+    try {
+      let query = supabase.from('activities').select('*');
+      
+      if (displayOn) {
+        // Use more efficient query with indexed columns
+        query = query.or(`display_on.eq.${displayOn},display_on.eq.both`);
+      }
+      
+      // Order by sort_order if available, otherwise by created_at
+      query = query.order('sort_order', { ascending: true, nullsFirst: false })
+                  .order('created_at', { ascending: false });
+      
+      const { data, error } = await query;
+   
+      if (error) {
+        throw error;
+      }
+      
+      // Transform data to include optimized image URLs
+      const transformedData = data.map(activity => ({
+        ...activity,
+        image_path: activity.image_path ? getOptimizedImageUrl(BUCKET_NAME, activity.image_path) : undefined
+      }));
+      
+      return transformedData;
+    } catch (err) {
+      console.error('Error fetching activities:', err);
+      throw err;
     }
-    
-    // Order by sort_order if available, otherwise by created_at
-    query = query.order('sort_order', { ascending: true, nullsFirst: false }).order('created_at', { ascending: false });
-    
-    const { data, error } = await query;
-    
-    if (error) {
-      throw error;
+  }, 5 * 60 * 1000); // 5 minute cache
+}
+
+// Get activities with pagination for admin interface
+export async function getActivitiesPaginated(
+  page: number = 1,
+  limit: number = 20,
+  displayOn?: 'home' | 'activities' | 'both'
+): Promise<{ data: Activity[]; total: number; page: number; totalPages: number }> {
+  const cacheKey = `activities_paginated_${page}_${limit}_${displayOn || 'all'}`;
+  
+  return getCachedData(cacheKey, async () => {
+    try {
+      let query = supabase.from('activities').select('*', { count: 'exact' });
+      
+      if (displayOn) {
+        query = query.or(`display_on.eq.${displayOn},display_on.eq.both`);
+      }
+      
+      // Add pagination
+      const from = (page - 1) * limit;
+      const to = from + limit - 1;
+      
+      query = query.order('sort_order', { ascending: true, nullsFirst: false })
+                  .order('created_at', { ascending: false })
+                  .range(from, to);
+      
+      const { data, error, count } = await query;
+   
+      if (error) {
+        throw error;
+      }
+      
+      // Transform data to include optimized image URLs
+      const transformedData = data.map(activity => ({
+        ...activity,
+        image_path: activity.image_path ? getOptimizedImageUrl(BUCKET_NAME, activity.image_path) : undefined
+      }));
+      
+      const totalPages = Math.ceil((count || 0) / limit);
+      
+      return {
+        data: transformedData,
+        total: count || 0,
+        page,
+        totalPages
+      };
+    } catch (err) {
+      console.error('Error fetching paginated activities:', err);
+      throw err;
     }
-    
-    // Transform data to include optimized image URLs
-    const transformedData = data.map(activity => ({
-      ...activity,
-      image_path: activity.image_path ? getOptimizedImageUrl(BUCKET_NAME, activity.image_path) : undefined
-    }));
-    
-    return transformedData;
-  } catch (err) {
-    throw err;
-  }
+  }, 2 * 60 * 1000); // 2 minute cache for admin data
 }
 
 // Get a single activity by ID
 export async function getActivity(id: string): Promise<Activity> {
-  const { data, error } = await supabase
-    .from('activities')
-    .select('*')
-    .eq('id', id)
-    .single();
-    
-  if (error) {
-    throw error;
-  }
+  const cacheKey = `activity_${id}`;
   
-  return {
-    ...data,
-    image_path: data.image_path ? getOptimizedImageUrl(BUCKET_NAME, data.image_path) : undefined
-  };
+  return getCachedData(cacheKey, async () => {
+    const { data, error } = await supabase
+      .from('activities')
+      .select('*')
+      .eq('id', id)
+      .single();
+      
+    if (error) {
+      throw error;
+    }
+    
+    return {
+      ...data,
+      image_path: data.image_path ? getOptimizedImageUrl(BUCKET_NAME, data.image_path) : undefined
+    };
+  }, 10 * 60 * 1000); // 10 minute cache for individual activities
 }
 
 // Create a new activity
@@ -95,6 +157,10 @@ export async function createActivity(
     throw error;
   }
   
+  // Invalidate related caches
+  invalidateCachePattern('activities_');
+  invalidateDashboardCache();
+  
   return {
     ...data,
     image_path: data.image_path ? getOptimizedImageUrl(BUCKET_NAME, data.image_path) : undefined
@@ -109,7 +175,7 @@ export async function updateActivity(
 ): Promise<Activity> {
   let filePath = updates.image_path;
   
-  // If there's a new image file, convert and upload it
+  // If there's a new image file, upload it first
   if (imageFile) {
     // Convert to AVIF format for better compression and quality
     const convertedImage = await convertToBestFormat(imageFile);
@@ -149,22 +215,15 @@ export async function updateActivity(
     throw error;
   }
   
+  // Invalidate related caches
+  invalidateCachePattern('activities_');
+  invalidateCachePattern(`activity_${id}`);
+  invalidateDashboardCache();
+  
   return {
     ...data,
     image_path: data.image_path ? getOptimizedImageUrl(BUCKET_NAME, data.image_path) : undefined
   };
-}
-
-// Update activity sort order
-export async function updateActivityOrder(id: string, sortOrder: number): Promise<void> {
-  const { error } = await supabase
-    .from('activities')
-    .update({ sort_order: sortOrder })
-    .eq('id', id);
-    
-  if (error) {
-    throw error;
-  }
 }
 
 // Delete an activity
@@ -187,7 +246,8 @@ export async function deleteActivity(id: string): Promise<void> {
       .remove([activity.image_path]);
       
     if (storageError) {
-      throw storageError;
+      console.error('Error deleting file from storage:', storageError);
+      // Don't throw here, continue with database deletion
     }
   }
   
@@ -199,5 +259,32 @@ export async function deleteActivity(id: string): Promise<void> {
     
   if (dbError) {
     throw dbError;
+  }
+  
+  // Invalidate related caches
+  invalidateCachePattern('activities_');
+  invalidateCachePattern(`activity_${id}`);
+  invalidateDashboardCache();
+}
+
+// Update activity order (for drag and drop functionality)
+export async function updateActivityOrder(activities: { id: string; sort_order: number }[]): Promise<void> {
+  try {
+    // Use a transaction-like approach with Promise.all
+    const updatePromises = activities.map(({ id, sort_order }) =>
+      supabase
+        .from('activities')
+        .update({ sort_order })
+        .eq('id', id)
+    );
+    
+    await Promise.all(updatePromises);
+    
+    // Invalidate related caches
+    invalidateCachePattern('activities_');
+    invalidateDashboardCache();
+  } catch (error) {
+    console.error('Error updating activity order:', error);
+    throw error;
   }
 } 

@@ -21,21 +21,21 @@ Abbaquar San Dream Centre is a community organisation that serves people of all 
 
 ### 🔧 Admin Panel Features
 - **Secure Authentication**: Protected admin routes with login system
-- **Dashboard Analytics**: Real-time visitor statistics and insights
+
 - **Content Management**: 
   - Gallery image upload and management
   - Activities creation and editing
   - Events scheduling and management
   - Contact message handling
 - **Data Export**: Backup and export functionality for data management
-- **Analytics Tracking**: Detailed visitor analytics and performance metrics
+
 - **Password Management**: Password visibility toggle and forgot password functionality
 
 ### 🚀 Performance Features
 - **Lazy Loading**: Optimised bundle splitting for faster page loads
 - **Image Optimization**: WebP format with responsive sizing
 - **Web Vitals**: Core Web Vitals optimisation for better SEO
-- **Analytics Integration**: Vercel Analytics and Speed Insights
+
 - **PWA Ready**: Service worker for offline capabilities
 
 ## 🛠️ Technology Stack
@@ -53,7 +53,7 @@ Abbaquar San Dream Centre is a community organisation that serves people of all 
 - **PostgreSQL** for data storage
 - **Row Level Security** for data protection
 
-### Payment & Analytics
+### Payment & Performance
 - **PayFast** for payment processing
 - **Vercel Analytics** for visitor tracking
 - **Web Vitals** for performance monitoring
@@ -110,13 +110,7 @@ src/
 - **Data Encryption**: Sensitive data encryption
 - **Row Level Security**: Database-level access control
 
-## 📊 Analytics & Monitoring
 
-### Visitor Analytics
-- **Page Views**: Track visitor engagement
-- **User Journey**: Understand navigation patterns
-- **Performance Metrics**: Core Web Vitals monitoring
-- **Real-time Data**: Live visitor statistics
 
 ### Performance Monitoring
 - **Lighthouse Scores**: Regular performance audits

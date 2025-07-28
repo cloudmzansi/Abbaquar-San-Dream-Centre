@@ -3,7 +3,7 @@ import { Mail } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { ContactFormData } from '@/types';
 import { LoadingSpinner } from './ui/loading-spinner';
-import { useFormTracking } from '@/hooks/use-analytics';
+
 
 interface FormErrors {
   name?: string;
@@ -23,7 +23,6 @@ const HomeContactForm: React.FC<HomeContactFormProps> = ({ showContainer = true 
   const [submitStatus, setSubmitStatus] = useState<{ success: boolean; message: string } | null>(null);
   const [errors, setErrors] = useState<FormErrors>({});
   const { toast } = useToast();
-  const { handleSubmit: trackFormSubmit } = useFormTracking('contact', 'home_contact_form');
   const [formData, setFormData] = useState<ContactFormData>({
     name: '',
     email: '',
@@ -64,9 +63,6 @@ const HomeContactForm: React.FC<HomeContactFormProps> = ({ showContainer = true 
 
     setIsSubmitting(true);
     setSubmitStatus(null);
-
-    // Track form submission
-    trackFormSubmit();
 
     try {
       // Prepare data for Web3Forms

@@ -59,7 +59,7 @@ const Hero = memo(() => {
                   height="400"
                   className="w-full h-full object-cover"
                   loading="eager" 
-                  fetchPriority="high"
+                  fetchpriority="high"
                   decoding="async"
                   onLoad={() => setIsLoaded(true)}
                   style={{

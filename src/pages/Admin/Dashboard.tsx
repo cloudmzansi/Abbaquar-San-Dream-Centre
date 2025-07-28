@@ -3,23 +3,12 @@ import AdminLayout from '@/components/admin/AdminLayout';
 import { Image, FileImage, Calendar, Mail, TrendingUp, Users, Eye, Plus, Clock, RefreshCw } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { checkSystemHealth, SystemHealth } from '@/lib/healthService';
+import { getDashboardData, invalidateDashboardCache, type CountsData, type RecentActivity } from '@/lib/dashboardService';
 import TimeWidget from '@/components/admin/TimeWidget';
 import WeatherWidget from '@/components/admin/WeatherWidget';
-import { format, subDays } from 'date-fns';
+import { format, subDays, isValid, parseISO } from 'date-fns';
 
-interface CountsData {
-  gallery: number;
-  activities: number;
-  events: number;
-  messages: number;
-}
 
-interface RecentActivity {
-  type: 'gallery' | 'activities' | 'events' | 'messages';
-  action: string;
-  title: string;
-  timestamp: string;
-}
 
 const AdminDashboard = () => {
   const [countsData, setCountsData] = useState<CountsData>({
@@ -38,61 +27,11 @@ const AdminDashboard = () => {
   const fetchDashboardData = async () => {
     setIsLoading(true);
     try {
-      // Get counts from each table
-      const [galleryData, activitiesData, eventsData, messagesData] = await Promise.all([
-        supabase.from('gallery').select('id', { count: 'exact', head: true }), 
-        supabase.from('activities').select('id', { count: 'exact', head: true }), 
-        supabase.from('events').select('id', { count: 'exact', head: true }),
-        supabase.from('contact_messages').select('id', { count: 'exact', head: true })
-      ]);
+      // Use optimized dashboard service with caching
+      const { counts, recentActivity: activity } = await getDashboardData();
       
-      setCountsData({
-        gallery: galleryData.count || 0,
-        activities: activitiesData.count || 0,
-        events: eventsData.count || 0,
-        messages: messagesData.count || 0,
-      });
-
-      // Get recent activity (last 7 days)
-      const sevenDaysAgo = subDays(new Date(), 7).toISOString();
-      
-      const [recentGallery, recentActivities, recentEvents, recentMessages] = await Promise.all([
-        supabase.from('gallery').select('id, title, created_at').gte('created_at', sevenDaysAgo).order('created_at', { ascending: false }).limit(3),
-        supabase.from('activities').select('id, title, created_at').gte('created_at', sevenDaysAgo).order('created_at', { ascending: false }).limit(3),
-        supabase.from('events').select('id, title, created_at').gte('created_at', sevenDaysAgo).order('created_at', { ascending: false }).limit(3),
-        supabase.from('contact_messages').select('id, name, subject, created_at').gte('created_at', sevenDaysAgo).order('created_at', { ascending: false }).limit(3)
-      ]);
-
-      const activity: RecentActivity[] = [
-        ...(recentGallery.data || []).map(item => ({
-          type: 'gallery' as const,
-          action: 'Image uploaded',
-          title: item.title || 'Gallery image',
-          timestamp: item.created_at
-        })),
-        ...(recentActivities.data || []).map(item => ({
-          type: 'activities' as const,
-          action: 'Activity created',
-          title: item.title,
-          timestamp: item.created_at
-        })),
-        ...(recentEvents.data || []).map(item => ({
-          type: 'events' as const,
-          action: 'Event created',
-          title: item.title,
-          timestamp: item.created_at
-        })),
-        ...(recentMessages.data || []).map(item => ({
-          type: 'messages' as const,
-          action: 'Message received',
-          title: `${item.name}: ${item.subject}`,
-          timestamp: item.created_at
-        }))
-      ];
-
-      // Sort by timestamp and take top 8
-      activity.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-      setRecentActivity(activity.slice(0, 8));
+      setCountsData(counts);
+      setRecentActivity(activity);
 
     } catch (err: any) {
       setError(`Failed to load data: ${err.message}. Check Supabase connection or data availability.`);
@@ -362,7 +301,18 @@ const AdminDashboard = () => {
                         <p className="text-xs text-white/70 truncate">{activity.title}</p>
                       </div>
                       <div className="text-xs text-white/50">
-                        {format(new Date(activity.timestamp), 'dd/MM HH:mm')}
+                        {(() => {
+                          let formatted = 'N/A';
+                          if (activity.timestamp) {
+                            let dateObj = typeof activity.timestamp === 'string' ? new Date(activity.timestamp) : activity.timestamp;
+                            if (isValid(dateObj)) {
+                              try {
+                                formatted = format(dateObj, 'dd/MM HH:mm');
+                              } catch {}
+                            }
+                          }
+                          return formatted;
+                        })()}
                       </div>
                     </div>
                   ))}
