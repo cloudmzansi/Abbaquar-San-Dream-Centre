@@ -12,31 +12,40 @@ Abbaquar San Dream Centre is a community organisation that serves people of all 
 - **Responsive Design**: Optimised for all devices with mobile-first approach
 - **Hero Section**: Compelling landing page with call-to-action buttons
 - **Activities Showcase**: Display of community programmes and initiatives
-- **Events Management**: Upcoming events with detailed information
+- **Events Management**: Upcoming events with detailed information and scheduling
 - **Photo Gallery**: Interactive image gallery with lightbox functionality
 - **Contact Forms**: Multiple contact options with form validation
 - **Donation System**: Integrated PayFast payment gateway for donations
 - **About Us**: Comprehensive information about the organisation and team
 - **Interactive Map**: Location-based services with Mapbox integration
+- **Team Showcase**: Dynamic team member profiles with roles and photos
 
 ### 🔧 Admin Panel Features
 - **Secure Authentication**: Protected admin routes with login system
-
+- **Dashboard Analytics**: Real-time statistics and system health monitoring
 - **Content Management**: 
-  - Gallery image upload and management
-  - Activities creation and editing
-  - Events scheduling and management
+  - Gallery image upload and management with drag-and-drop
+  - Activities creation and editing with display location control
+  - Events scheduling and management with advanced date/time handling
+  - Team member management with profile photos and role management
   - Contact message handling
+- **Advanced Features**:
+  - Drag-and-drop reordering for activities and team members
+  - Bulk operations for gallery management
+  - Real-time search and filtering
+  - Grid and list view modes
+  - Image optimization and validation
 - **Data Export**: Backup and export functionality for data management
-
 - **Password Management**: Password visibility toggle and forgot password functionality
+- **System Monitoring**: Performance tracking and health status indicators
 
 ### 🚀 Performance Features
 - **Lazy Loading**: Optimised bundle splitting for faster page loads
-- **Image Optimization**: WebP format with responsive sizing
+- **Image Optimization**: WebP format with responsive sizing and automatic compression
 - **Web Vitals**: Core Web Vitals optimisation for better SEO
-
+- **Database Optimization**: Performance indexes and Row Level Security
 - **PWA Ready**: Service worker for offline capabilities
+- **Caching Strategy**: Efficient resource loading and browser caching
 
 ## 🛠️ Technology Stack
 
@@ -47,22 +56,25 @@ Abbaquar San Dream Centre is a community organisation that serves people of all 
 - **Radix UI** for accessible components
 - **React Router** for navigation
 - **Lucide React** for icons
+- **React Beautiful DnD** for drag-and-drop functionality
 
 ### Backend & Database
 - **Supabase** for database and authentication
-- **PostgreSQL** for data storage
+- **PostgreSQL** for data storage with advanced indexing
 - **Row Level Security** for data protection
+- **Real-time subscriptions** for live updates
 
 ### Payment & Performance
 - **PayFast** for payment processing
 - **Vercel Analytics** for visitor tracking
 - **Web Vitals** for performance monitoring
+- **Sharp** for image processing and optimization
 
 ### Development Tools
 - **ESLint** for code quality
 - **TypeScript** for type safety
 - **Vitest** for testing
-- **Sharp** for image processing
+- **Database migrations** for schema management
 
 ## 📁 Project Structure
 
@@ -109,14 +121,22 @@ src/
 - **CSRF Protection**: Secure form submissions
 - **Data Encryption**: Sensitive data encryption
 - **Row Level Security**: Database-level access control
+- **Image Upload Security**: File type and size validation
 
+## 📊 Database Schema
 
+### Core Tables
+- **activities**: Community programmes with display location control
+- **events**: Scheduled events with advanced date/time handling
+- **gallery_images**: Photo gallery with categorization
+- **team_members**: Team profiles with roles and photos
+- **donations**: Payment records with PayFast integration
 
-### Performance Monitoring
-- **Lighthouse Scores**: Regular performance audits
-- **Bundle Analysis**: Optimised code splitting
-- **Image Optimization**: Automatic WebP conversion
-- **Caching Strategy**: Efficient resource loading
+### Performance Optimizations
+- **Indexed Queries**: Optimized database performance
+- **RLS Policies**: Secure data access patterns
+- **Automatic Timestamps**: Created/updated tracking
+- **Soft Deletes**: Data preservation strategies
 
 ## 🌐 Deployment
 
@@ -124,6 +144,7 @@ src/
 - **CDN**: Global content delivery
 - **SSL**: Automatic HTTPS encryption
 - **Environment**: Production-optimised builds
+- **Database**: Supabase with automatic backups
 
 ## 📱 Mobile Optimisation
 
@@ -131,6 +152,7 @@ src/
 - **Touch Interactions**: Optimised for touch devices
 - **Performance**: Fast loading on mobile networks
 - **Accessibility**: Screen reader friendly
+- **Progressive Web App**: Offline capabilities
 
 ## 🎯 SEO Features
 
@@ -143,17 +165,20 @@ src/
 ## 🔄 Content Management
 
 ### Admin Capabilities
-- **Image Upload**: Drag-and-drop gallery management
-- **Event Creation**: Rich text editor for events
-- **Activity Management**: CRUD operations for activities
+- **Image Upload**: Drag-and-drop gallery management with validation
+- **Event Creation**: Rich text editor for events with scheduling
+- **Activity Management**: CRUD operations with display control
+- **Team Management**: Member profiles with photo uploads and role management
 - **Message Handling**: Contact form message processing
 - **Data Export**: Backup and export functionality
+- **Real-time Updates**: Instant content changes across the site
 
 ### User Experience
-- **Intuitive Interface**: Easy-to-use admin panel
-- **Real-time Updates**: Instant content changes
+- **Intuitive Interface**: Easy-to-use admin panel with modern UI
+- **Drag-and-Drop**: Visual content reordering
 - **Bulk Operations**: Efficient content management
 - **Search & Filter**: Quick content discovery
+- **Grid/List Views**: Flexible content display options
 
 ## 🌍 Accessibility
 
@@ -168,8 +193,9 @@ src/
 - **Lighthouse Score**: 90+ across all metrics
 - **Core Web Vitals**: Optimised for user experience
 - **Bundle Size**: Efficient code splitting
-- **Image Loading**: Optimised image delivery
+- **Image Loading**: Optimised image delivery with WebP
 - **Caching**: Strategic resource caching
+- **Database Performance**: Optimized queries and indexing
 
 ## 🤝 Contributing
 
@@ -178,6 +204,7 @@ This project follows modern web development best practices:
 - **ESLint**: Code quality standards
 - **Prettier**: Consistent code formatting
 - **Git Hooks**: Pre-commit quality checks
+- **Database Migrations**: Version-controlled schema changes
 
 ## 📄 License
 
