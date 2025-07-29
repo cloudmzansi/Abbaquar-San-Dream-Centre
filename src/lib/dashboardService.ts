@@ -15,7 +15,8 @@ export async function getDashboardData() {
       const batchQueries = [
         supabase.from('gallery').select('id, title, created_at').limit(3),
         supabase.from('activities').select('id, title, created_at').limit(3),
-        supabase.from('events').select('id, title, created_at').limit(3)
+        supabase.from('events').select('id, title, created_at').limit(3),
+        supabase.from('team_members').select('id, name, created_at').limit(3)
       ];
 
       const results = await Promise.allSettled(batchQueries);
@@ -24,6 +25,7 @@ export async function getDashboardData() {
       let gallery: any[] = [];
       let activities: any[] = [];
       let events: any[] = [];
+      let teamMembers: any[] = [];
       
       if (results[0].status === 'fulfilled') {
         gallery = results[0].value.data || [];
@@ -34,12 +36,16 @@ export async function getDashboardData() {
       if (results[2].status === 'fulfilled') {
         events = results[2].value.data || [];
       }
+      if (results[3].status === 'fulfilled') {
+        teamMembers = results[3].value.data || [];
+      }
       
       // Get counts with optimized queries
       const countQueries = [
         supabase.from('gallery').select('*', { count: 'exact', head: true }),
         supabase.from('activities').select('*', { count: 'exact', head: true }),
-        supabase.from('events').select('*', { count: 'exact', head: true })
+        supabase.from('events').select('*', { count: 'exact', head: true }),
+        supabase.from('team_members').select('*', { count: 'exact', head: true })
       ];
       
       const countResults = await Promise.allSettled(countQueries);
@@ -47,14 +53,16 @@ export async function getDashboardData() {
       const counts = {
         gallery: countResults[0].status === 'fulfilled' ? countResults[0].value.count || 0 : 0,
         activities: countResults[1].status === 'fulfilled' ? countResults[1].value.count || 0 : 0,
-        events: countResults[2].status === 'fulfilled' ? countResults[2].value.count || 0 : 0
+        events: countResults[2].status === 'fulfilled' ? countResults[2].value.count || 0 : 0,
+        teamMembers: countResults[3].status === 'fulfilled' ? countResults[3].value.count || 0 : 0
       };
       
       // Combine recent activity
       const recentActivity = [
         ...gallery.map((item: any) => ({ ...item, type: 'gallery', title: item.title || 'Gallery Image' })),
         ...activities.map((item: any) => ({ ...item, type: 'activity', title: item.title || 'Activity' })),
-        ...events.map((item: any) => ({ ...item, type: 'event', title: item.title || 'Event' }))
+        ...events.map((item: any) => ({ ...item, type: 'event', title: item.title || 'Event' })),
+        ...teamMembers.map((item: any) => ({ ...item, type: 'team', title: item.name || 'Team Member' }))
       ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
        .slice(0, 10);
       

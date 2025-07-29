@@ -1,27 +1,31 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Heart, Users, BookOpen } from 'lucide-react';
-
-interface TeamMember {
-  name: string;
-  role: string;
-  image: string;
-}
-
-const teamMembers: TeamMember[] = [
-  { name: "Brylan Kock", role: "Paramount Chief", image: "/assets/brylan-kock.webp" },
-  { name: "Chief Mervyn Damas", role: "District Chief", image: "/assets/chief-mervyn-damas.webp" },
-  { name: "Chieftess Olivia Jones", role: "Chairperson", image: "/assets/chieftess-olivia-jones.webp" },
-  { name: "Genevieve Coughlan", role: "Treasurer", image: "/assets/genevieve-coughlan.webp" },
-  { name: "Headwoman Nolene Ogle", role: "Deputy Chairperson", image: "/assets/headwoman-nolene-ogle.webp" },
-  { name: "Jason Abrahams", role: "Senior Chief", image: "/assets/jason-abrahams.webp" },
-  { name: "Karen Smarts", role: "Secretary", image: "/assets/karen-smarts.webp" },
-  { name: "Kevin Louw", role: "District Chief", image: "/assets/kevin-louw.webp" },
-  { name: "Michell Houston", role: "Personal Assistant to District Chiefs", image: "/assets/michell-houston.webp" },
-  { name: "Stanley Smith", role: "Marketing Manager", image: "/assets/stanley-smith.webp" }
-];
+import { useState, useEffect } from 'react';
+import { getTeamMembers } from '@/lib/teamService';
+import { TeamMember } from '@/types/supabase';
 
 const AboutUs = () => {
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadTeamMembers = async () => {
+      try {
+        const members = await getTeamMembers();
+        setTeamMembers(members);
+      } catch (err: any) {
+        console.error('Failed to load team members:', err);
+        setError('Failed to load team members');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadTeamMembers();
+  }, []);
+
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
@@ -109,27 +113,42 @@ const AboutUs = () => {
               </p>
             </div>
             
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
-              {teamMembers.map((member, index) => (
-                <div key={index} className="bg-white rounded-2xl overflow-hidden shadow-lg text-center">
-                  <div className="aspect-square overflow-hidden">
-                    <img 
-                      src={member.image} 
-                      alt={`${member.name} - ${member.role}`}
-                      className="w-full object-cover object-top"
-                      width="208"
-                      height="208"
-                      style={member.name === 'Brylan Kock' ? { objectPosition: 'top' } : {}}
-                      loading="lazy"
-                    />
+            {isLoading ? (
+              <div className="flex justify-center items-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#073366]"></div>
+              </div>
+            ) : error ? (
+              <div className="bg-red-50 p-6 rounded-lg text-center text-red-600 mb-8">
+                <p>{error}</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
+                {teamMembers.map((member, index) => (
+                  <div key={member.id} className="bg-white rounded-2xl overflow-hidden shadow-lg text-center">
+                    <div className="aspect-square overflow-hidden">
+                      {member.image_path ? (
+                        <img 
+                          src={member.image_path} 
+                          alt={`${member.name} - ${member.role}`}
+                          className="w-full object-cover object-top"
+                          width="208"
+                          height="208"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                          <Users className="w-12 h-12 text-gray-400" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-3 md:p-4">
+                      <h3 className="font-bold text-[#073366] text-sm md:text-base">{member.name}</h3>
+                      <p className="text-gray-600 text-xs md:text-sm mt-1">{member.role}</p>
+                    </div>
                   </div>
-                  <div className="p-3 md:p-4">
-                    <h3 className="font-bold text-[#073366] text-sm md:text-base">{member.name}</h3>
-                    <p className="text-gray-600 text-xs md:text-sm mt-1">{member.role}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </section>
 

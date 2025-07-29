@@ -11,6 +11,7 @@ interface DashboardState {
     totalEvents: number;
     totalImages: number;
     totalActivities: number;
+    totalTeamMembers: number;
   };
   systemHealth: {
     database: 'healthy' | 'warning' | 'error';
@@ -58,6 +59,7 @@ const AdminDashboard = () => {
       totalEvents: 0,
       totalImages: 0,
       totalActivities: 0,
+      totalTeamMembers: 0,
     },
     systemHealth: {
       database: 'healthy',
@@ -80,6 +82,7 @@ const AdminDashboard = () => {
         totalEvents: data.counts.events || 0,
         totalImages: data.counts.gallery || 0,
         totalActivities: data.counts.activities || 0,
+        totalTeamMembers: data.counts.teamMembers || 0,
       };
       
       // Transform recent activity to match expected structure
@@ -215,7 +218,7 @@ const AdminDashboard = () => {
         {/* Quick Stats */}
         <div className="bg-[#1a365d] rounded-xl p-6 border border-white/10">
           <h2 className="text-xl font-semibold mb-4 text-white">Quick Stats</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="flex items-center p-4 bg-[#0c2342] rounded-lg">
               <Calendar className="w-8 h-8 text-[#4f7df9] mr-3" />
               <div>
@@ -235,6 +238,13 @@ const AdminDashboard = () => {
               <div>
                 <div className="text-2xl font-bold text-white">{state.stats?.totalActivities || 0}</div>
                 <div className="text-sm text-white/70">Total Activities</div>
+              </div>
+            </div>
+            <div className="flex items-center p-4 bg-[#0c2342] rounded-lg">
+              <Users className="w-8 h-8 text-[#4f7df9] mr-3" />
+              <div>
+                <div className="text-2xl font-bold text-white">{state.stats?.totalTeamMembers || 0}</div>
+                <div className="text-sm text-white/70">Team Members</div>
               </div>
             </div>
           </div>

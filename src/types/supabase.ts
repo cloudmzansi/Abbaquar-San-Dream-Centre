@@ -34,6 +34,17 @@ export interface Event {
   status?: 'draft' | 'published' | 'archived'; // Current status
 }
 
+export interface TeamMember {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  name: string;
+  role: string;
+  image_path?: string;
+  sort_order?: number;
+  is_active?: boolean;
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -51,6 +62,11 @@ export interface Database {
         Row: Event;
         Insert: Omit<Event, 'id' | 'created_at'>;
         Update: Partial<Omit<Event, 'id' | 'created_at'>>;
+      };
+      team_members: {
+        Row: TeamMember;
+        Insert: Omit<TeamMember, 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<TeamMember, 'id' | 'created_at' | 'updated_at'>>;
       };
     };
   };

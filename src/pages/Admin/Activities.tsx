@@ -24,9 +24,11 @@ import {
   ArrowUpDown,
   MoreVertical,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  GripVertical
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
 const ActivitiesAdmin = () => {
   const [activities, setActivities] = useState<Activity[]>([]);
@@ -272,6 +274,39 @@ const ActivitiesAdmin = () => {
         return 'Both Pages';
       default:
         return 'Unknown';
+    }
+  };
+
+  // Handle drag and drop reorder
+  const handleDragEnd = async (result: any) => {
+    if (!result.destination) return;
+
+    const sourceIndex = result.source.index;
+    const destinationIndex = result.destination.index;
+
+    if (sourceIndex === destinationIndex) return;
+
+    const newActivities = Array.from(filteredActivities);
+    const [movedActivity] = newActivities.splice(sourceIndex, 1);
+    newActivities.splice(destinationIndex, 0, movedActivity);
+
+    // Update sort_order for all affected activities
+    const updatedActivities = newActivities.map((activity, index) => ({
+      ...activity,
+      sort_order: index + 1
+    }));
+
+    setFilteredActivities(updatedActivities);
+
+    try {
+      await updateActivityOrder(updatedActivities.map(activity => ({
+        id: activity.id,
+        sort_order: activity.sort_order || 0
+      })));
+    } catch (err: any) {
+      console.error('Failed to update order:', err);
+      setError('Failed to update activity order. Please try again.');
+      await loadActivities(); // Reload to reset order
     }
   };
 
@@ -540,36 +575,31 @@ const ActivitiesAdmin = () => {
                   </button>
                 )}
               </div>
-            ) : (
-              <div className={viewMode === 'grid' 
-                ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' 
-                : 'space-y-4'
-              }>
+            ) : viewMode === 'grid' ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredActivities.map((activity) => (
                   <div 
                     key={activity.id} 
-                    className={`bg-white/10 rounded-lg overflow-hidden border border-white/20 hover:border-white/30 transition-all duration-200 group ${
-                      viewMode === 'list' ? 'flex' : ''
-                    }`}
+                    className="bg-white/10 rounded-lg overflow-hidden border border-white/20 hover:border-white/30 transition-all duration-200 group"
                   >
                     {/* Image */}
-                    <div className={`${viewMode === 'list' ? 'w-48 flex-shrink-0' : ''}`}>
+                    <div>
                     {activity.image_path ? (
                       <img
                         src={activity.image_path}
                           alt={activity.title}
-                          className={`${viewMode === 'list' ? 'w-full h-32' : 'w-full h-48'} object-cover`}
+                          className="w-full h-48 object-cover"
                           loading="lazy"
                       />
                     ) : (
-                        <div className={`${viewMode === 'list' ? 'w-full h-32' : 'w-full h-48'} bg-[#102a4c] flex items-center justify-center`}>
+                        <div className="w-full h-48 bg-[#102a4c] flex items-center justify-center">
                           <ImageIcon className="text-white/40" size={32} />
                       </div>
                     )}
                     </div>
 
                     {/* Content */}
-                    <div className="flex-1 p-4">
+                    <div className="p-4">
                       <div className="flex items-start justify-between mb-3">
                         <h3 className="font-medium text-white line-clamp-2">{activity.title}</h3>
                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -608,6 +638,94 @@ const ActivitiesAdmin = () => {
                   </div>
                 ))}
               </div>
+            ) : (
+              <DragDropContext onDragEnd={handleDragEnd}>
+                <Droppable droppableId="activities">
+                  {(provided) => (
+                    <div
+                      {...provided.droppableProps}
+                      ref={provided.innerRef}
+                      className="space-y-4"
+                    >
+                      {filteredActivities.map((activity, index) => (
+                        <Draggable key={activity.id} draggableId={activity.id} index={index}>
+                          {(provided, snapshot) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              className={`bg-white/10 rounded-lg overflow-hidden border border-white/20 hover:border-white/30 transition-all duration-200 group flex ${
+                                snapshot.isDragging ? 'shadow-lg scale-105' : ''
+                              }`}
+                            >
+                              <div
+                                {...provided.dragHandleProps}
+                                className="flex items-center justify-center px-3 cursor-move"
+                              >
+                                <GripVertical className="w-4 h-4 text-white/30" />
+                              </div>
+                              
+                              {/* Image */}
+                              <div className="w-48 flex-shrink-0">
+                              {activity.image_path ? (
+                                <img
+                                  src={activity.image_path}
+                                    alt={activity.title}
+                                    className="w-full h-32 object-cover"
+                                    loading="lazy"
+                                />
+                              ) : (
+                                  <div className="w-full h-32 bg-[#102a4c] flex items-center justify-center">
+                                    <ImageIcon className="text-white/40" size={32} />
+                                </div>
+                              )}
+                              </div>
+
+                              {/* Content */}
+                              <div className="flex-1 p-4">
+                                <div className="flex items-start justify-between mb-3">
+                                  <h3 className="font-medium text-white line-clamp-2">{activity.title}</h3>
+                                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button
+                                  onClick={() => handleEdit(activity)}
+                                      className="p-1.5 text-white/70 hover:text-white hover:bg-white/10 rounded-md transition-colors"
+                                  title="Edit activity"
+                                >
+                                  <Pencil size={16} />
+                                </button>
+                                <button
+                                  onClick={() => handleDelete(activity.id)}
+                                      className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-md transition-colors"
+                                  title="Delete activity"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                                  </div>
+                                </div>
+                                
+                                <p className="text-sm text-white/70 line-clamp-3 mb-3">
+                                  {activity.description}
+                                </p>
+                                
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2 text-xs text-white/60">
+                                    {getDisplayIcon(activity.display_on)}
+                                    <span>{getDisplayLabel(activity.display_on)}</span>
+                                  </div>
+                                  
+                                  <div className="text-xs text-white/40">
+                                    {new Date(activity.created_at).toLocaleDateString()}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              </DragDropContext>
             )}
           </div>
         </div>

@@ -28,6 +28,7 @@ const AdminLogin = lazy(() => import("./pages/Admin/Login"));
 const AdminDashboard = lazy(() => import("./pages/Admin/Dashboard"));
 const GalleryAdmin = lazy(() => import("./pages/Admin/Gallery"));
 const ActivitiesAdmin = lazy(() => import("./pages/Admin/Activities"));
+const TeamAdmin = lazy(() => import("./pages/Admin/Team"));
 const EventsAdmin = lazy(() => import("./pages/Admin/Events"));
 const BackupExport = lazy(() => import("./pages/Admin/BackupExport"));
 
@@ -90,6 +91,16 @@ const AppRoutes = () => {
           <ProtectedRoute>
             <Suspense fallback={<LoadingFallback />}>
               <ActivitiesAdmin />
+            </Suspense>
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/login/team" 
+        element={
+          <ProtectedRoute>
+            <Suspense fallback={<LoadingFallback />}>
+              <TeamAdmin />
             </Suspense>
           </ProtectedRoute>
         } 
