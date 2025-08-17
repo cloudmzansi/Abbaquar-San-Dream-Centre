@@ -29,6 +29,7 @@ const AdminDashboard = lazy(() => import("./pages/Admin/Dashboard"));
 const GalleryAdmin = lazy(() => import("./pages/Admin/Gallery"));
 const ActivitiesAdmin = lazy(() => import("./pages/Admin/Activities"));
 const TeamAdmin = lazy(() => import("./pages/Admin/Team"));
+const VolunteersAdmin = lazy(() => import("./pages/Admin/Volunteers"));
 const EventsAdmin = lazy(() => import("./pages/Admin/Events"));
 const BackupExport = lazy(() => import("./pages/Admin/BackupExport"));
 
@@ -49,9 +50,28 @@ const AppRoutes = () => {
       ? 'Admin Panel | Abbaquar-San Dream Centre' 
       : 'Abbaquar-San Dream Centre';
     
-    // Scroll to top on route change
+    // Check if this is a return from PayFast donation
+    const urlParams = new URLSearchParams(location.search);
+    const isDonationReturn = urlParams.has('donation');
+    
+    if (isDonationReturn) {
+      // Don't scroll to top when returning from donation flow
+      // The user should stay where they were on the donate section
+      // Also disable browser's automatic scroll restoration for this case
+      if ('scrollRestoration' in window.history) {
+        window.history.scrollRestoration = 'manual';
+      }
+      return;
+    }
+    
+    // Re-enable automatic scroll restoration for normal navigation
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'auto';
+    }
+    
+    // Scroll to top on route change (but not for donation returns)
     scrollToTop();
-  }, [location.pathname]);
+  }, [location.pathname, location.search]);
 
   return (
     <Routes>
@@ -101,6 +121,16 @@ const AppRoutes = () => {
           <ProtectedRoute>
             <Suspense fallback={<LoadingFallback />}>
               <TeamAdmin />
+            </Suspense>
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/login/volunteers" 
+        element={
+          <ProtectedRoute>
+            <Suspense fallback={<LoadingFallback />}>
+              <VolunteersAdmin />
             </Suspense>
           </ProtectedRoute>
         } 

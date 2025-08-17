@@ -21,11 +21,57 @@ const Donate = () => {
     // pageshow event fires when navigating back
     window.addEventListener('pageshow', handlePageShow);
     
+    // Check if we're returning from a donation
+    const urlParams = new URLSearchParams(window.location.search);
+    const donationStatus = urlParams.get('donation');
+    
+    if (donationStatus) {
+      // Reset processing state
+      setIsProcessing(false);
+      
+      // Show appropriate message based on donation status
+      if (donationStatus === 'success') {
+        toast({
+          title: "Thank you for your donation!",
+          description: "Your contribution has been received successfully. We appreciate your support!",
+          variant: "default"
+        });
+      } else if (donationStatus === 'cancelled') {
+        toast({
+          title: "Donation cancelled",
+          description: "Your donation was cancelled. You can try again anytime.",
+          variant: "destructive"
+        });
+      }
+      
+      // Restore scroll position if available
+      const savedScrollPosition = sessionStorage.getItem('lastScrollPosition');
+      if (savedScrollPosition) {
+        const scrollY = parseInt(savedScrollPosition, 10);
+        // Use a small delay to ensure the page has fully loaded
+        setTimeout(() => {
+          window.scrollTo({ top: scrollY, behavior: 'instant' });
+        }, 100);
+        // Clean up the stored scroll position
+        sessionStorage.removeItem('lastScrollPosition');
+      } else {
+        // Fallback: scroll to donate section if no saved position
+        const donateElement = document.getElementById('donate');
+        if (donateElement) {
+          donateElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+      
+      // Clean up the URL parameters
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+    }
+    
     // Clean up event listener
     return () => {
       window.removeEventListener('pageshow', handlePageShow);
     };
-  }, [selectedAmount]);
+  }, [selectedAmount, toast]);
   
   const predefinedAmounts = ["50.00", "100.00", "200.00", "500.00"];
 
@@ -66,8 +112,9 @@ const Donate = () => {
       amountInput.value = formattedAmount;
     }
     
-    // Store the current state in sessionStorage before redirecting
+    // Store the current state and scroll position before redirecting
     sessionStorage.setItem('lastDonationAmount', selectedAmount);
+    sessionStorage.setItem('lastScrollPosition', window.scrollY.toString());
     
     setIsProcessing(true);
     
