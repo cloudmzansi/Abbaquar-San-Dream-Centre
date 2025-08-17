@@ -30,8 +30,8 @@ const config = {
     'https://fonts.googleapis.com',
     'https://fonts.gstatic.com',
   ],
-  // Output directory (Vite's default)
-  distDir: path.join(__dirname, '../dist'),
+  // Output directory (Vite's default) - use process.cwd() for better compatibility
+  distDir: path.join(process.cwd(), 'dist'),
 };
 
 // Main function
@@ -42,6 +42,7 @@ async function optimizeForWebVitals() {
     // Ensure the dist directory exists
     if (!fs.existsSync(config.distDir)) {
       console.error('❌ Dist directory not found. Run build first.');
+      console.error(`Expected path: ${config.distDir}`);
       process.exit(1);
     }
 
@@ -67,19 +68,22 @@ async function optimizeForWebVitals() {
     );
 
     // Add preload hints for critical CSS
-    const cssFiles = fs.readdirSync(path.join(config.distDir, 'assets'))
-      .filter(file => file.endsWith('.css'));
-    
-    if (cssFiles.length > 0) {
-      // Find the main CSS file (usually the largest one)
-      const mainCssFile = cssFiles[0]; // Simplified approach
+    const assetsDir = path.join(config.distDir, 'assets');
+    if (fs.existsSync(assetsDir)) {
+      const cssFiles = fs.readdirSync(assetsDir)
+        .filter(file => file.endsWith('.css'));
       
-      // Add preload for the main CSS file if not already present
-      if (!indexHtml.includes(`rel="preload" href="/assets/${mainCssFile}"`)) {
-        indexHtml = indexHtml.replace(
-          '</head>',
-          `  <link rel="preload" href="/assets/${mainCssFile}" as="style">\n</head>`
-        );
+      if (cssFiles.length > 0) {
+        // Find the main CSS file (usually the largest one)
+        const mainCssFile = cssFiles[0]; // Simplified approach
+        
+        // Add preload for the main CSS file if not already present
+        if (!indexHtml.includes(`rel="preload" href="/assets/${mainCssFile}"`)) {
+          indexHtml = indexHtml.replace(
+            '</head>',
+            `  <link rel="preload" href="/assets/${mainCssFile}" as="style">\n</head>`
+          );
+        }
       }
     }
 
