@@ -77,8 +77,8 @@ async function optimizeForWebVitals() {
         // Find the main CSS file (usually the largest one)
         const mainCssFile = cssFiles[0]; // Simplified approach
         
-        // Add preload for the main CSS file if not already present
-        if (!indexHtml.includes(`rel="preload" href="/assets/${mainCssFile}"`)) {
+        // Only add preload if there's no existing stylesheet link for this file
+        if (!indexHtml.includes(`href="/assets/${mainCssFile}"`)) {
           indexHtml = indexHtml.replace(
             '</head>',
             `  <link rel="preload" href="/assets/${mainCssFile}" as="style">\n</head>`
