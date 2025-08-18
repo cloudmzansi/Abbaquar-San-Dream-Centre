@@ -13,7 +13,7 @@ import {
   runScheduledTasks 
 } from '@/lib/eventsService';
 import { Event } from '@/types/supabase';
-import { supabase } from '@/lib/supabase';
+import { supabase, getOptimizedImageUrl } from '@/lib/supabase';
 import { 
   Calendar, 
   Loader, 
@@ -442,12 +442,9 @@ const EventsAdmin = () => {
         throw new Error(`Upload failed: ${error.message}`);
       }
       
-      // Get the public URL
-      const { data: urlData } = supabase.storage
-        .from('events')
-        .getPublicUrl(fileName);
-      
-      return urlData.publicUrl;
+      // Return just the file path, not the full URL
+      // The events service will handle URL generation with getOptimizedImageUrl
+      return fileName;
     } catch (error: any) {
       console.error('Image upload error:', error);
       setImageUploadError(error.message || 'Failed to upload image');
@@ -522,7 +519,13 @@ const EventsAdmin = () => {
 
     // Set image preview if event has an image
     if (event.image_path) {
-      setImagePreview(event.image_path);
+      // If it's a full URL, use it directly; if it's a path, generate the optimized URL
+      if (event.image_path.startsWith('http')) {
+        setImagePreview(event.image_path);
+      } else {
+        const optimizedUrl = getOptimizedImageUrl('events', event.image_path);
+        setImagePreview(optimizedUrl);
+      }
     }
 
     setIsCreating(false);

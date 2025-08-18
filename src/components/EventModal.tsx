@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Calendar, Clock, MapPin } from 'lucide-react';
 import { Event } from '@/types/supabase';
 import { format, parseISO } from 'date-fns';
@@ -42,6 +42,9 @@ const EventModal = ({ event, isOpen, onClose }: EventModalProps) => {
           <DialogTitle className="text-2xl font-bold text-[#073366]">
             {event.title}
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Event details for {event.title}
+          </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-6">
