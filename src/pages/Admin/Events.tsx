@@ -454,6 +454,64 @@ const EventsAdmin = () => {
     }
   };
 
+  // Handle image deletion
+  const handleImageDelete = async () => {
+    if (!editEvent?.image_path) return;
+    
+    // Confirm deletion
+    if (!confirm('Are you sure you want to remove this image? This action cannot be undone.')) {
+      return;
+    }
+    
+    try {
+      // Extract filename from the image path
+      let fileName = editEvent.image_path;
+      
+      // If it's a full URL, extract the filename
+      if (editEvent.image_path.startsWith('http')) {
+        const urlParts = editEvent.image_path.split('/');
+        fileName = urlParts[urlParts.length - 1];
+      }
+      
+      // Delete from Supabase storage
+      const { error } = await supabase.storage
+        .from('events')
+        .remove([fileName]);
+      
+      if (error) {
+        console.error('Error deleting image from storage:', error);
+        // Continue anyway to update the database
+      }
+      
+      // Update the event in database to remove image_path
+      if (editEvent.id) {
+        const { error: updateError } = await supabase
+          .from('events')
+          .update({ image_path: null })
+          .eq('id', editEvent.id);
+        
+        if (updateError) {
+          throw new Error(`Failed to update event: ${updateError.message}`);
+        }
+      }
+      
+      // Clear the form state
+      setImagePreview(null);
+      setSelectedImage(null);
+      setImageUploadError(null);
+      
+      // Reload events to reflect the change
+      await loadEvents();
+      
+      setSuccessMessage('Image removed successfully!');
+      setTimeout(() => setSuccessMessage(null), 3000);
+      
+    } catch (error: any) {
+      console.error('Error deleting image:', error);
+      setError(`Failed to remove image: ${error.message}`);
+    }
+  };
+
   // Handle image selection
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -917,11 +975,7 @@ const EventsAdmin = () => {
                             />
                             <button
                               type="button"
-                              onClick={() => {
-                                setSelectedImage(null);
-                                setImagePreview(null);
-                                setImageUploadError(null);
-                              }}
+                              onClick={handleImageDelete}
                               className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
                               title="Remove image"
                             >
