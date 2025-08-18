@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
+import EventModal from '@/components/EventModal';
 import { 
   getEvents, 
   createEvent, 
@@ -35,7 +36,8 @@ import {
   CheckCircle,
   AlertCircle,
   Clock as ClockIcon,
-  MapPin as MapPinIcon
+  MapPin as MapPinIcon,
+  ExternalLink
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 
@@ -329,6 +331,10 @@ const EventsAdmin = () => {
   const [publishAt, setPublishAt] = useState('');
   const [status, setStatus] = useState<'draft' | 'published' | 'archived'>('published');
   const [editingTimeForEvent, setEditingTimeForEvent] = useState<string | null>(null);
+  
+  // Preview modal state
+  const [previewEvent, setPreviewEvent] = useState<Event | null>(null);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
 
   // Debug: Log when editingTimeForEvent changes
   useEffect(() => {
@@ -589,6 +595,27 @@ const EventsAdmin = () => {
           </div>
         </div>
 
+        {/* New Interactive Features Info */}
+        <div className="bg-[#4f7df9]/20 border border-[#4f7df9]/30 rounded-lg p-4">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0">
+              <ExternalLink className="text-[#4f7df9] mt-1" size={20} />
+            </div>
+            <div>
+              <h3 className="text-white font-medium mb-1">New Interactive Features</h3>
+              <p className="text-white/80 text-sm mb-2">
+                Your events are now fully interactive! Users can click on event cards to view detailed information in a popup modal, 
+                and there's a dedicated Events page with search and filtering capabilities.
+              </p>
+              <div className="text-white/70 text-xs space-y-1">
+                <p>• <strong>Preview Button:</strong> Click the eye icon on any event to see how it appears to users</p>
+                <p>• <strong>Form Preview:</strong> Use the Preview button when creating/editing to see your changes</p>
+                <p>• <strong>User Experience:</strong> Events are now clickable with hover effects and detailed modals</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Search and Filter Bar */}
         <div className="bg-[#1a365d]/50 backdrop-blur-sm rounded-lg p-4 border border-white/10">
           <div className="flex flex-col sm:flex-row gap-4">
@@ -784,6 +811,33 @@ const EventsAdmin = () => {
                 <div className="flex justify-end gap-3 pt-4 border-t border-white/10">
                   <button
                     type="button"
+                    onClick={() => {
+                      // Create a preview event from current form data
+                      const previewEventData: Event = {
+                        id: editEvent?.id || 'preview',
+                        created_at: editEvent?.created_at || new Date().toISOString(),
+                        title: title || 'Preview Event',
+                        date: date || new Date().toISOString().split('T')[0],
+                        start_time: startTime || undefined,
+                        end_time: endTime || undefined,
+                        venue: venue || 'Preview Venue',
+                        description: description || 'Preview description',
+                        display_on: 'home',
+                        publish_at: publishAt || undefined,
+                        status: status,
+                        is_archived: false
+                      };
+                      setPreviewEvent(previewEventData);
+                      setIsPreviewModalOpen(true);
+                    }}
+                    disabled={!title || !date || !venue || !description}
+                    className="flex items-center px-4 py-2 text-white/70 hover:text-white border border-white/20 rounded-lg hover:bg-white/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <ExternalLink className="mr-2" size={18} />
+                    Preview
+                  </button>
+                  <button
+                    type="button"
                     onClick={resetForm}
                     className="px-4 py-2 text-white/70 hover:text-white border border-white/20 rounded-lg hover:bg-white/10 transition-colors"
                   >
@@ -867,6 +921,16 @@ const EventsAdmin = () => {
                       <div className="flex items-start justify-between mb-3">
                         <h3 className="font-medium text-white line-clamp-2">{event.title}</h3>
                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => {
+                              setPreviewEvent(event);
+                              setIsPreviewModalOpen(true);
+                            }}
+                            className="p-1.5 text-white/70 hover:text-white hover:bg-white/10 rounded-md transition-colors"
+                            title="Preview event"
+                          >
+                            <ExternalLink size={16} />
+                          </button>
                           <button
                             onClick={() => handleEdit(event)}
                             className="p-1.5 text-white/70 hover:text-white hover:bg-white/10 rounded-md transition-colors"
@@ -1058,6 +1122,16 @@ const EventsAdmin = () => {
           </div>
         </div>
       </div>
+
+      {/* Event Preview Modal */}
+      <EventModal
+        event={previewEvent}
+        isOpen={isPreviewModalOpen}
+        onClose={() => {
+          setIsPreviewModalOpen(false);
+          setPreviewEvent(null);
+        }}
+      />
     </AdminLayout>
   );
 };
