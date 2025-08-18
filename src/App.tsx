@@ -21,6 +21,7 @@ const LoadingFallback = () => <div className="h-screen w-full flex items-center 
 const Gallery = lazy(() => import("./pages/Gallery"));
 const AboutUs = lazy(() => import("./pages/AboutUs"));
 const Activities = lazy(() => import("./pages/Activities"));
+const Events = lazy(() => import("./pages/Events"));
 const Contact = lazy(() => import("./pages/Contact"));
 
 // Lazy load admin routes which are rarely accessed by most users
@@ -80,6 +81,7 @@ const AppRoutes = () => {
       <Route path="/gallery" element={<Suspense fallback={<LoadingFallback />}><Gallery /></Suspense>} />
       <Route path="/about-us" element={<Suspense fallback={<LoadingFallback />}><AboutUs /></Suspense>} />
       <Route path="/activities" element={<Suspense fallback={<LoadingFallback />}><Activities /></Suspense>} />
+      <Route path="/events" element={<Suspense fallback={<LoadingFallback />}><Events /></Suspense>} />
       <Route path="/contact" element={<Suspense fallback={<LoadingFallback />}><Contact /></Suspense>} />
       
       {/* Admin Routes */}

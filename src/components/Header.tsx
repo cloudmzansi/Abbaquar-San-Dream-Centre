@@ -136,6 +136,15 @@ const Header = memo(() => {
                   Activities
                 </Link>
                 <Link 
+                  to="/events" 
+                  className="px-4 py-2 text-white/90 hover:text-white transition-all rounded-xl hover:bg-white/10"
+                  role="menuitem"
+                  onClick={() => handleNavigation('/events')}
+                  aria-current={location.pathname === '/events' ? 'page' : undefined}
+                >
+                  Events
+                </Link>
+                <Link 
                   to="/gallery" 
                   className="px-4 py-2 text-white/90 hover:text-white transition-all rounded-xl hover:bg-white/10"
                   role="menuitem"
@@ -240,6 +249,17 @@ const Header = memo(() => {
             aria-current={location.pathname === '/activities' ? 'page' : undefined}
           >
             Activities
+          </Link>
+          <Link 
+            to="/events" 
+            className="px-4 py-3 text-white/90 hover:text-white transition-all rounded-xl hover:bg-white/10 text-lg"
+            onClick={() => {
+              toggleMobileMenu();
+              handleNavigation('/events');
+            }}
+            aria-current={location.pathname === '/events' ? 'page' : undefined}
+          >
+            Events
           </Link>
           <Link 
             to="/gallery" 

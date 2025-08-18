@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback, useMemo, memo } from "react";
-import { Calendar, Clock, MapPin } from 'lucide-react';
+import { Calendar, Clock, MapPin, Eye, ArrowRight } from 'lucide-react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination } from 'swiper/modules';
 import { getEvents } from '@/lib/eventsService';
 import { Event } from '@/types/supabase';
 import { format, parseISO } from 'date-fns';
+import EventModal from './EventModal';
 
 // Import Swiper styles
 import 'swiper/css';
@@ -29,7 +30,7 @@ function formatEventDate(dateStr?: string): string {
 }
 
 // Memoize EventCard to prevent unnecessary re-renders
-const EventCard = memo(({ event }: { event: Event }) => {
+const EventCard = memo(({ event, onClick }: { event: Event; onClick: (event: Event) => void }) => {
   // Format time to display as "start_time - end_time" using useMemo
   const formattedTime = useMemo(() => {
     return event.start_time && event.end_time ? 
@@ -38,7 +39,10 @@ const EventCard = memo(({ event }: { event: Event }) => {
   }, [event.start_time, event.end_time]);
     
   return (
-    <div className="bg-gray-50 rounded-2xl p-6 h-full">
+    <div 
+      className="bg-gray-50 rounded-2xl p-6 h-full cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-[1.02] group"
+      onClick={() => onClick(event)}
+    >
       <div className="space-y-4">
         <div className="flex items-start justify-between">
           <div className="bg-white rounded-2xl p-3 shadow-sm">
@@ -48,7 +52,9 @@ const EventCard = memo(({ event }: { event: Event }) => {
             Upcoming
           </span>
         </div>
-        <h3 className="text-xl font-semibold text-[#073366] mt-2">{event.title}</h3>
+        <h3 className="text-xl font-semibold text-[#073366] mt-2 group-hover:text-[#8A4BA3] transition-colors">
+          {event.title}
+        </h3>
         <div className="space-y-2">
           <div className="flex items-center text-gray-600">
             <Calendar className="h-4 w-4 mr-2" />
@@ -63,7 +69,16 @@ const EventCard = memo(({ event }: { event: Event }) => {
             <span className="text-sm">{event.venue}</span>
           </div>
         </div>
-        <p className="text-gray-600 text-sm">{event.description}</p>
+        <p className="text-gray-600 text-sm line-clamp-3">{event.description}</p>
+        
+        {/* Click indicator */}
+        <div className="flex items-center justify-between pt-2">
+          <div className="flex items-center text-[#8A4BA3] text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+            <Eye className="h-4 w-4 mr-1" />
+            View Details
+          </div>
+          <ArrowRight className="h-4 w-4 text-[#8A4BA3] opacity-0 group-hover:opacity-100 transition-opacity" />
+        </div>
       </div>
     </div>
   );
@@ -74,6 +89,8 @@ const UpcomingEvents = ({ displayOn = 'home' }: UpcomingEventsProps) => {
   const [events, setEvents] = useState<Event[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Memoize the checkMobile function to prevent recreation on each render
   const checkMobile = useCallback(() => {
@@ -108,6 +125,17 @@ const UpcomingEvents = ({ displayOn = 'home' }: UpcomingEventsProps) => {
     fetchEvents();
   }, [fetchEvents]);
 
+  // Handle event click
+  const handleEventClick = useCallback((event: Event) => {
+    setSelectedEvent(event);
+    setIsModalOpen(true);
+  }, []);
+
+  const closeModal = useCallback(() => {
+    setIsModalOpen(false);
+    setSelectedEvent(null);
+  }, []);
+
   // Memoize the mobile events display to prevent unnecessary re-renders
   const mobileEventsDisplay = useMemo(() => (
     <div className="w-full pb-12">
@@ -129,13 +157,13 @@ const UpcomingEvents = ({ displayOn = 'home' }: UpcomingEventsProps) => {
         ) : (
           events.map((event) => (
             <SwiperSlide key={event.id}>
-              <EventCard event={event} />
+              <EventCard event={event} onClick={handleEventClick} />
             </SwiperSlide>
           ))
         )}
       </Swiper>
     </div>
-  ), [events]);
+  ), [events, handleEventClick]);
 
   // Memoize the desktop events display to prevent unnecessary re-renders
   const desktopEventsDisplay = useMemo(() => (
@@ -144,11 +172,11 @@ const UpcomingEvents = ({ displayOn = 'home' }: UpcomingEventsProps) => {
         <div className="col-span-full text-center py-12 text-gray-500">No upcoming events found.</div>
       ) : (
         events.map((event) => (
-          <EventCard key={event.id} event={event} />
+          <EventCard key={event.id} event={event} onClick={handleEventClick} />
         ))
       )}
     </div>
-  ), [events]);
+  ), [events, handleEventClick]);
 
   // Memoize the loading and error states
   const loadingDisplay = useMemo(() => (
@@ -178,7 +206,27 @@ const UpcomingEvents = ({ displayOn = 'home' }: UpcomingEventsProps) => {
         {isLoading ? loadingDisplay : 
          error ? errorDisplay : 
          isMobile ? mobileEventsDisplay : desktopEventsDisplay}
+        
+        {/* View All Events Button */}
+        {!isLoading && !error && events.length > 0 && (
+          <div className="text-center mt-12">
+            <a 
+              href="/events" 
+              className="inline-flex items-center bg-[#8A4BA3] text-white px-8 py-3 rounded-xl font-semibold hover:bg-[#7A3B93] transition-colors"
+            >
+              View All Events
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </a>
+          </div>
+        )}
       </div>
+
+      {/* Event Modal */}
+      <EventModal
+        event={selectedEvent}
+        isOpen={isModalOpen}
+        onClose={closeModal}
+      />
     </section>
   );
 };

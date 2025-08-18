@@ -28,10 +28,10 @@ const Hero = memo(() => {
         <div className="flex flex-col md:flex-row items-center gap-12 w-full">
           <div className="md:w-1/2 mb-10 md:mb-0">
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-8 leading-tight text-white text-center md:text-left font-serif">
-              Welcome to Abbaquar-San Dream Centre
+              Welcome to the Abbaquar-San Dream Centre
             </h1>
             <p className="text-lg md:text-xl mb-10 max-w-lg text-gray-200 text-center md:text-left">
-              No matter what stage, age, or season you find yourself in, Abbaquar-San Dream Centre is for you! 
+              No matter what stage, age, or season you find yourself in, the Abbaquar-San Dream Centre is for you! 
               We invite you to come just as you are and be part of this community.
             </p>
             <div className="flex flex-row flex-wrap gap-4 justify-center md:justify-start">
