@@ -9,7 +9,14 @@ const FallbackMap = ({ className = '' }: MapboxMapProps) => (
   <div className={`${className} bg-gray-200 flex items-center justify-center rounded-lg`}>
     <div className="text-center p-8">
       <h3 className="text-xl font-semibold mb-4">Abbaquar-San Dream Centre</h3>
-      <p className="mb-2">61 Gardenia Road, Wentworth, Durban, 4052</p>
+      <p className="mb-2">
+        61 Gardenia Road<br />
+        Merewent<br />
+        Durban<br />
+        4052<br />
+        Kwa Zulu Natal<br />
+        South Africa
+      </p>
       <p className="text-sm text-gray-600">Map loading unavailable</p>
     </div>
   </div>
@@ -79,7 +86,14 @@ export default function MapboxMap({ className = '' }: MapboxMapProps) {
           .setHTML(`
             <div class="p-2">
               <h3 class="font-semibold">Abbaquar-San Dream Centre</h3>
-              <address class="not-italic">61 Gardenia Road, Wentworth, Durban, 4052</address>
+              <address class="not-italic">
+                61 Gardenia Road<br />
+                Merewent<br />
+                Durban<br />
+                4052<br />
+                Kwa Zulu Natal<br />
+                South Africa
+              </address>
             </div>
           `);
           
@@ -120,7 +134,7 @@ export default function MapboxMap({ className = '' }: MapboxMapProps) {
         aria-label="Interactive map"
       />
       <div className="sr-only">
-        <p>Our address is 61 Gardenia Road, Wentworth, Durban, 4052.</p>
+        <p>Our address is 61 Gardenia Road, Merewent, Durban, 4052, Kwa Zulu Natal, South Africa.</p>
       </div>
     </div>
   );

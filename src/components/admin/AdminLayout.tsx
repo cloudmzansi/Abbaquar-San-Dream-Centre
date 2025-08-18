@@ -1,6 +1,6 @@
 import { ReactNode, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Image, FileImage, Calendar, Home, LogOut, Menu, X, Mail, Database, Bell, Settings, Users } from 'lucide-react';
+import { Image, FileImage, Calendar, Home, LogOut, Menu, X, Mail, Database, Bell, Settings, Users, Heart } from 'lucide-react';
 import { signOut } from '@/lib/authService';
 
 interface AdminLayoutProps {
@@ -30,6 +30,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
     { icon: Image, label: 'Gallery', path: '/login/gallery' },
     { icon: FileImage, label: 'Activities', path: '/login/activities' },
     { icon: Users, label: 'Team', path: '/login/team' },
+    { icon: Heart, label: 'Volunteers', path: '/login/volunteers' },
     { icon: Calendar, label: 'Events', path: '/login/events' },
     { icon: Database, label: 'Backup', path: '/login/backup' },
   ];
@@ -73,7 +74,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
             </div>
             <div>
               <div className="uppercase text-xs text-white/40 mb-2 pl-2 tracking-widest">Content</div>
-              {navItems.slice(1, 5).map((item) => (
+              {navItems.slice(1, 6).map((item) => (
                 <Link
                   key={item.path}
                   to={item.path}
@@ -90,7 +91,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
             </div>
             <div>
               <div className="uppercase text-xs text-white/40 mb-2 pl-2 tracking-widest">Tools</div>
-              {navItems.slice(5).map((item) => (
+              {navItems.slice(6).map((item) => (
                 <Link
                   key={item.path}
                   to={item.path}

@@ -36,7 +36,13 @@ const Contact = () => {
                   </div>
                   <div>
                     <h4 className="text-white font-semibold text-base mb-1">Address</h4>
-                    <p className="text-gray-200 text-sm leading-relaxed">61 Gardenia Road, Wentworth, Durban, 4052</p>
+                    <p className="text-gray-200 text-sm leading-relaxed">
+                      61 Gardenia Road,<br />
+                      Merewent, Durban,<br />
+                      4052,<br />
+                      KwaZulu-Natal,<br />
+                      South Africa
+                    </p>
                   </div>
                 </div>
                 
@@ -47,6 +53,7 @@ const Contact = () => {
                   <div>
                     <h4 className="text-white font-semibold text-base mb-1">Phone</h4>
                     <p className="text-gray-200 text-sm">084 251 5740</p>
+                    <p className="text-gray-200 text-sm">072 267 2587</p>
                   </div>
                 </div>
                 

@@ -3,27 +3,33 @@ import Footer from "@/components/Footer";
 import { Heart, Users, BookOpen } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { getTeamMembers } from '@/lib/teamService';
-import { TeamMember } from '@/types/supabase';
+import { getVolunteers } from '@/lib/volunteerService';
+import { TeamMember, Volunteer } from '@/types/supabase';
 
 const AboutUs = () => {
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadTeamMembers = async () => {
+    const loadData = async () => {
       try {
-        const members = await getTeamMembers();
+        const [members, volunteerList] = await Promise.all([
+          getTeamMembers(),
+          getVolunteers()
+        ]);
         setTeamMembers(members);
+        setVolunteers(volunteerList);
       } catch (err: any) {
-        console.error('Failed to load team members:', err);
-        setError('Failed to load team members');
+        console.error('Failed to load data:', err);
+        setError('Failed to load data');
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadTeamMembers();
+    loadData();
   }, []);
 
   return (
@@ -144,6 +150,57 @@ const AboutUs = () => {
                     <div className="p-3 md:p-4">
                       <h3 className="font-bold text-[#073366] text-sm md:text-base">{member.name}</h3>
                       <p className="text-gray-600 text-xs md:text-sm mt-1">{member.role}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* Volunteers Section */}
+        <section aria-labelledby="volunteers-title" className="py-16 md:py-24 bg-gray-50">
+          <div className="container-custom">
+            <div className="max-w-4xl mx-auto text-center mb-16">
+              <span className="text-[#D72660] font-semibold mb-4 block">Our Community Heroes</span>
+              <h2 id="volunteers-title" className="text-4xl md:text-5xl font-bold mb-6 text-[#073366] font-serif">Volunteers</h2>
+              <div className="mx-auto w-24 h-1 bg-[#D72660] rounded mb-6" />
+              <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
+                Passionate volunteers who dedicate their time and skills to support our mission.
+              </p>
+            </div>
+            
+            {isLoading ? (
+              <div className="flex justify-center items-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#073366]"></div>
+              </div>
+            ) : error ? (
+              <div className="bg-red-50 p-6 rounded-lg text-center text-red-600 mb-8">
+                <p>{error}</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
+                {volunteers.map((volunteer, index) => (
+                  <div key={volunteer.id} className="bg-white rounded-2xl overflow-hidden shadow-lg text-center">
+                    <div className="aspect-square overflow-hidden">
+                      {volunteer.image_path ? (
+                        <img 
+                          src={volunteer.image_path} 
+                          alt={`${volunteer.name} - ${volunteer.role}`}
+                          className="w-full object-cover object-top"
+                          width="208"
+                          height="208"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                          <Users className="w-12 h-12 text-gray-400" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-3 md:p-4">
+                      <h3 className="font-bold text-[#073366] text-sm md:text-base">{volunteer.name}</h3>
+                      <p className="text-gray-600 text-xs md:text-sm mt-1">{volunteer.role}</p>
                     </div>
                   </div>
                 ))}

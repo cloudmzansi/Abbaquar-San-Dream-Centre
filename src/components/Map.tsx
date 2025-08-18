@@ -45,7 +45,14 @@ export default function Map({ className = '' }: MapProps) {
     marker.bindPopup(`
       <div class="p-2" role="dialog" aria-label="Location details">
         <h3 class="font-semibold">Abbaquar-san Dream Centre</h3>
-        <address class="not-italic">61 Gardenia Road, Wentworth, Durban, 4052</address>
+        <address class="not-italic">
+          61 Gardenia Road<br />
+          Merewent<br />
+          Durban<br />
+          4052<br />
+          Kwa Zulu Natal<br />
+          South Africa
+        </address>
       </div>
     `).openPopup();
 
@@ -111,7 +118,7 @@ export default function Map({ className = '' }: MapProps) {
       />
       <div className="sr-only">
         <p>Use arrow keys to pan the map, plus and minus keys to zoom, and Enter to focus on our location.</p>
-        <p>Our address is 61 Gardenia Road, Wentworth, Durban, 4052.</p>
+        <p>Our address is 61 Gardenia Road, Merewent, Durban, 4052, Kwa Zulu Natal, South Africa.</p>
       </div>
     </div>
   );

@@ -1,6 +1,5 @@
 {
   "rewrites": [
-    { "source": "/assets/(.*)", "destination": "/assets/$1" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
@@ -19,6 +18,15 @@
         {
           "key": "Content-Type",
           "value": "text/css"
+        }
+      ]
+    },
+    {
+      "source": "/assets/(.*)\\.mjs",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/javascript"
         }
       ]
     }

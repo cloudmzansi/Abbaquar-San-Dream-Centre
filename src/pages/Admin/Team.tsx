@@ -118,6 +118,8 @@ const TeamAdmin = () => {
     setEditMember(null);
     setIsCreating(false);
     setShowForm(false);
+    setError(null);
+    setSuccessMessage(null);
   };
 
   // Handle form submission
@@ -133,10 +135,20 @@ const TeamAdmin = () => {
     setError(null);
 
     try {
+      let finalSortOrder = sortOrder;
+      
+      // If creating a new member, automatically set sort order to last position
+      if (isCreating) {
+        const maxSortOrder = teamMembers.length > 0 
+          ? Math.max(...teamMembers.map(m => m.sort_order || 0))
+          : 0;
+        finalSortOrder = maxSortOrder + 1;
+      }
+
       const memberData = {
         name: name.trim(),
         role: role.trim(),
-        sort_order: sortOrder,
+        sort_order: finalSortOrder,
         is_active: isActive,
         image_path: editMember?.image_path
       };
@@ -161,6 +173,10 @@ const TeamAdmin = () => {
 
   // Handle edit
   const handleEdit = (member: TeamMember) => {
+    // Reset form state first
+    resetForm();
+    
+    // Set edit state
     setEditMember(member);
     setName(member.name);
     setRole(member.role);
@@ -326,9 +342,10 @@ const TeamAdmin = () => {
           </div>
         </div>
 
-        {/* Team Member Form */}
+        {/* Team Member Form Modal */}
         {showForm && (
-          <div className="bg-[#1a365d]/80 backdrop-blur-sm rounded-lg shadow-lg border border-white/10">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={resetForm}>
+            <div className="bg-[#1a365d] rounded-lg shadow-xl border border-white/10 max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-semibold text-white">
@@ -458,6 +475,7 @@ const TeamAdmin = () => {
                   </button>
                 </div>
               </form>
+              </div>
             </div>
           </div>
         )}

@@ -3,42 +3,58 @@ import { Mail, Phone, MapPin, Facebook, Instagram } from 'lucide-react';
 
 const Footer = () => {
   return (
-    <footer className="bg-[#083060] text-white pt-16 pb-8" role="contentinfo">
-      <div className="container-custom">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
+         <footer className="bg-[#083060] text-white pt-8 pb-6" role="contentinfo">
+        <div className="container-custom">
+         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
           {/* About Section */}
           <div>
-            <div className="flex items-center gap-3 mb-6">
-              <img 
-                src="/assets/abbaquar-logo.webp" 
-                alt="Abbaquar Logo" 
-                className="h-10 w-10 rounded-lg"
-                width="40"
-                height="40"
-              />
-              <span className="text-xl font-bold">Abbaquar - San Dream Centre</span>
-            </div>
-            <p className="mb-6 text-gray-300 text-sm leading-relaxed">
+                         <div className="flex items-center gap-3 mb-4">
+                <img 
+                  src="/assets/abbaquar-logo.webp" 
+                  alt="Abbaquar Logo" 
+                  className="h-8 w-8 rounded-lg"
+                  width="32"
+                  height="32"
+                />
+               <span className="text-lg font-bold">Abbaquar - San Dream Centre</span>
+              </div>
+             <p className="mb-4 text-gray-300 text-sm leading-relaxed">
               We are a cultural organisation geared towards assisting, uplifting and rebuilding our community.
             </p>
-            <address className="flex flex-col space-y-4 not-italic">
+                         <address className="flex flex-col space-y-3 not-italic">
               <div className="flex items-center">
                 <div className="bg-white/10 backdrop-blur-sm p-2 rounded-lg mr-3">
                   <MapPin className="h-6 w-6 text-[#D72660]" aria-hidden="true" />
                 </div>
-                <span className="text-gray-300 text-sm">61 Gardenia Road, Wentworth,<br />Durban, 4052</span>
+                <span className="text-gray-300 text-sm">
+                  61 Gardenia Road,<br />
+                  Merewent, Durban,<br />
+                  4052,<br />
+                  KwaZulu-Natal,<br />
+                  South Africa
+                </span>
               </div>
               <div className="flex items-center">
                 <div className="bg-white/10 backdrop-blur-sm p-2 rounded-lg mr-3">
                   <Phone className="h-6 w-6 text-[#D72660]" aria-hidden="true" />
                 </div>
-                <a 
-                  href="tel:+27842515740" 
-                  className="text-gray-300 text-sm hover:text-white transition-colors"
-                  aria-label="Call us at 084 251 5740"
-                >
-                  084 251 5740
-                </a>
+                <div className="text-gray-300 text-sm">
+                  <a 
+                    href="tel:+27842515740" 
+                    className="hover:text-white transition-colors"
+                    aria-label="Call us at 084 251 5740"
+                  >
+                    084 251 5740
+                  </a>
+                  <br />
+                  <a 
+                    href="tel:+27722672587" 
+                    className="hover:text-white transition-colors"
+                    aria-label="Call us at 072 267 2587"
+                  >
+                    072 267 2587
+                  </a>
+                </div>
               </div>
               <div className="flex items-center">
                 <div className="bg-white/10 backdrop-blur-sm p-2 rounded-lg mr-3">
@@ -57,8 +73,8 @@ const Footer = () => {
 
           {/* Quick Links */}
           <nav aria-label="Footer navigation">
-            <h3 className="text-lg font-semibold mb-6">Quick Links</h3>
-            <ul className="space-y-3" role="list">
+                         <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
+             <ul className="space-y-2" role="list">
               <li>
                 <Link 
                   to="/about-us" 
@@ -100,8 +116,8 @@ const Footer = () => {
 
           {/* Operational Hours */}
           <div>
-            <h3 className="text-lg font-semibold mb-6">Operational Hours</h3>
-            <dl className="space-y-3 text-sm">
+                         <h3 className="text-lg font-semibold mb-4">Operational Hours</h3>
+             <dl className="space-y-2 text-sm">
               <div>
                 <dt className="sr-only">Monday to Thursday</dt>
                 <dd className="text-gray-300">Mon - Thu: 9am - 4pm</dd>
@@ -119,8 +135,8 @@ const Footer = () => {
 
           {/* Stay Connected */}
           <div>
-            <h3 className="text-lg font-semibold mb-6">Stay Connected</h3>
-            <p className="mb-4 text-gray-300">
+                         <h3 className="text-lg font-semibold mb-4">Stay Connected</h3>
+             <p className="mb-3 text-gray-300">
               Join our community to receive updates about our activities and events.
             </p>
             <div className="flex space-x-4" role="list" aria-label="Social media links">
@@ -133,13 +149,13 @@ const Footer = () => {
               >
                 <Facebook className="h-5 w-5" aria-hidden="true" />
               </a>
-              <a 
-                href="https://wa.me/27842515740" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="h-10 w-10 rounded-full bg-[#D72660] flex items-center justify-center hover:bg-opacity-80 transition-colors"
-                aria-label="Contact us on WhatsApp"
-              >
+                              <a 
+                  href="https://wa.me/27842515740" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="h-10 w-10 rounded-full bg-[#D72660] flex items-center justify-center hover:bg-opacity-80 transition-colors"
+                  aria-label="Contact us on WhatsApp (084 251 5740)"
+                >
                 <svg 
                   xmlns="http://www.w3.org/2000/svg" 
                   width="20" 
@@ -166,33 +182,33 @@ const Footer = () => {
         </div>
 
         {/* Registration Numbers */}
-        <div className="border-t border-white/20 mt-8 pt-6">
-          <div className="text-center mb-4">
+                 <div className="border-t border-white/20 mt-6 pt-4">
+           <div className="text-center mb-3">
             <div className="flex flex-wrap justify-center gap-6 text-gray-300 text-sm">
               <div>
                 <span>NPO Number:</span>
-                <span className="ml-1">xxx</span>
+                <span className="ml-1">281-684</span>
               </div>
               <div>
-                <span>Registration Number:</span>
-                <span className="ml-1">xxx</span>
+                <span>Tax Reference No:</span>
+                <span className="ml-1">9180100274</span>
               </div>
               <div>
-                <span>PBO Number:</span>
-                <span className="ml-1">xxx</span>
+                <span>PBO Reference No:</span>
+                <span className="ml-1">930078739</span>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="border-t border-white/20 mt-4 pt-6">
+                 <div className="border-t border-white/20 mt-3 pt-4">
           <p className="text-center text-gray-300">
             <small>
               Copyright © {new Date().getFullYear()} Abbaquar - San Dream Centre. All Rights Reserved.
             </small>
             <br />
             <small>
-              Made with <span role="img" aria-label="green heart" style={{color: '#27ae60', fontSize: '1em', verticalAlign: 'middle'}}>&#128154;</span> by <a href="https://mofi.co.za" target="_blank" rel="noopener noreferrer" className="underline hover:text-white">Cloud Mzansi</a>.
+              Made with <span role="img" aria-label="green heart" style={{color: '#27ae60', fontSize: '1em', verticalAlign: 'middle'}}>&#128154;</span> by <a href="https://cloudmzansi.co.za" target="_blank" rel="noopener noreferrer" className="underline hover:text-white">Cloud Mzansi</a>.
             </small>
           </p>
         </div>

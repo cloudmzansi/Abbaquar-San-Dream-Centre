@@ -45,6 +45,17 @@ export interface TeamMember {
   is_active?: boolean;
 }
 
+export interface Volunteer {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  name: string;
+  role: string;
+  image_path?: string;
+  sort_order?: number;
+  is_active?: boolean;
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -67,6 +78,11 @@ export interface Database {
         Row: TeamMember;
         Insert: Omit<TeamMember, 'id' | 'created_at' | 'updated_at'>;
         Update: Partial<Omit<TeamMember, 'id' | 'created_at' | 'updated_at'>>;
+      };
+      volunteers: {
+        Row: Volunteer;
+        Insert: Omit<Volunteer, 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<Volunteer, 'id' | 'created_at' | 'updated_at'>>;
       };
     };
   };
