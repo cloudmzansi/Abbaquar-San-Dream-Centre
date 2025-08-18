@@ -73,11 +73,11 @@ const EventCard = memo(({ event, onClick }: { event: Event; onClick: (event: Eve
         
         {/* Click indicator */}
         <div className="flex items-center justify-between pt-2">
-          <div className="flex items-center text-[#8A4BA3] text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="flex items-center text-[#8A4BA3] text-sm font-medium">
             <Eye className="h-4 w-4 mr-1" />
             View Details
           </div>
-          <ArrowRight className="h-4 w-4 text-[#8A4BA3] opacity-0 group-hover:opacity-100 transition-opacity" />
+          <ArrowRight className="h-4 w-4 text-[#8A4BA3]" />
         </div>
       </div>
     </div>
