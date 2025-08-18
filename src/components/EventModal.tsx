@@ -1,9 +1,8 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Calendar, Clock, MapPin, Maximize2 } from 'lucide-react';
+import { Calendar, Clock, MapPin } from 'lucide-react';
 import { Event } from '@/types/supabase';
 import { format, parseISO } from 'date-fns';
 import { Button } from '@/components/ui/button';
-import { useState } from 'react';
 
 interface EventModalProps {
   event: Event | null;
@@ -34,8 +33,6 @@ function formatEventTime(event: Event): string {
 }
 
 const EventModal = ({ event, isOpen, onClose }: EventModalProps) => {
-  const [isImageExpanded, setIsImageExpanded] = useState(false);
-  
   if (!event) return null;
 
   return (
@@ -57,14 +54,9 @@ const EventModal = ({ event, isOpen, onClose }: EventModalProps) => {
               <img
                 src={event.image_path}
                 alt={event.title}
-                className="w-full max-h-96 object-contain rounded-lg border border-gray-200 cursor-pointer"
+                className="w-full max-h-96 object-contain rounded-lg border border-gray-200"
                 loading="lazy"
-                onClick={() => setIsImageExpanded(true)}
               />
-              <div className="absolute top-2 right-2 bg-black bg-opacity-70 text-white p-2 rounded-lg flex items-center gap-1 text-sm">
-                <Maximize2 className="h-4 w-4" />
-                <span>View Full Size</span>
-              </div>
             </div>
           )}
           
@@ -128,32 +120,6 @@ const EventModal = ({ event, isOpen, onClose }: EventModalProps) => {
           </div>
         </div>
       </DialogContent>
-      
-      {/* Lightbox Modal */}
-      {isImageExpanded && event.image_path && (
-        <Dialog open={isImageExpanded} onOpenChange={setIsImageExpanded}>
-          <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 bg-black/90 border-none">
-            <div className="relative w-full h-full flex items-center justify-center">
-              <img
-                src={event.image_path}
-                alt={event.title}
-                className="max-w-full max-h-full object-contain"
-                loading="lazy"
-              />
-              <Button
-                onClick={() => setIsImageExpanded(false)}
-                className="absolute top-4 right-4 bg-white/20 hover:bg-white/30 text-white border-none backdrop-blur-sm"
-                size="sm"
-              >
-                ✕
-              </Button>
-              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/50 text-white px-4 py-2 rounded-lg text-sm">
-                Click outside or press ESC to close
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
     </Dialog>
   );
 };
