@@ -7,6 +7,20 @@ import { isAuthenticated } from './authService';
 const BUCKET_NAME = 'events';
 
 /**
+ * Helper function to get the correct image URL for events
+ * Handles both old full URLs and new file paths
+ */
+function getEventImageUrl(imagePath: string): string {
+  // If it's already a full URL, return it as is
+  if (imagePath.startsWith('http')) {
+    return imagePath;
+  }
+  
+  // If it's a file path, generate optimized URL
+  return getOptimizedImageUrl(BUCKET_NAME, imagePath);
+}
+
+/**
  * Get events with optional filtering by display location
  * Uses enhanced caching to reduce API calls and improve performance
  * Only returns published, non-archived events that have reached their publish time
@@ -51,7 +65,7 @@ export async function getEvents(displayOn?: 'home' | 'events' | 'both'): Promise
       // Transform data to include optimized image URLs
       const transformedData = data.map(event => ({
         ...event,
-        image_path: event.image_path ? getOptimizedImageUrl(BUCKET_NAME, event.image_path) : undefined
+        image_path: event.image_path ? getEventImageUrl(event.image_path) : undefined
       }));
       
       return transformedData;
@@ -105,7 +119,7 @@ export async function getEventsPaginated(
       // Transform data to include optimized image URLs
       const transformedData = data.map(event => ({
         ...event,
-        image_path: event.image_path ? getOptimizedImageUrl(BUCKET_NAME, event.image_path) : undefined
+        image_path: event.image_path ? getEventImageUrl(event.image_path) : undefined
       }));
       
       const totalPages = Math.ceil((count || 0) / limit);
@@ -141,7 +155,7 @@ export async function getEvent(id: string): Promise<Event> {
     
     return {
       ...data,
-      image_path: data.image_path ? getOptimizedImageUrl(BUCKET_NAME, data.image_path) : undefined
+      image_path: data.image_path ? getEventImageUrl(data.image_path) : undefined
     };
   }, 10 * 60 * 1000); // 10 minute cache for individual events
 }
@@ -372,7 +386,7 @@ export async function getAllEventsForAdmin(): Promise<Event[]> {
       // Transform data to include optimized image URLs
       const transformedData = data.map(event => ({
         ...event,
-        image_path: event.image_path ? getOptimizedImageUrl(BUCKET_NAME, event.image_path) : undefined
+        image_path: event.image_path ? getEventImageUrl(event.image_path) : undefined
       }));
       
       return transformedData;
@@ -408,7 +422,7 @@ export async function getArchivedEvents(): Promise<Event[]> {
       // Transform data to include optimized image URLs
       const transformedData = data.map(event => ({
         ...event,
-        image_path: event.image_path ? getOptimizedImageUrl(BUCKET_NAME, event.image_path) : undefined
+        image_path: event.image_path ? getEventImageUrl(event.image_path) : undefined
       }));
       
       return transformedData;
