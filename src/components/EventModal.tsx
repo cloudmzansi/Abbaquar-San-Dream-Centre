@@ -1,5 +1,5 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Calendar, Clock, MapPin, X, ExternalLink } from 'lucide-react';
+import { Calendar, Clock, MapPin } from 'lucide-react';
 import { Event } from '@/types/supabase';
 import { format, parseISO } from 'date-fns';
 import { Button } from '@/components/ui/button';
@@ -39,16 +39,8 @@ const EventModal = ({ event, isOpen, onClose }: EventModalProps) => {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-[#073366] flex items-center justify-between">
-            <span>{event.title}</span>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              className="h-8 w-8 p-0 hover:bg-gray-100"
-            >
-              <X className="h-4 w-4" />
-            </Button>
+          <DialogTitle className="text-2xl font-bold text-[#073366]">
+            {event.title}
           </DialogTitle>
         </DialogHeader>
         
