@@ -37,7 +37,9 @@ import {
   AlertCircle,
   Clock as ClockIcon,
   MapPin as MapPinIcon,
-  ExternalLink
+  ExternalLink,
+  Upload,
+  Image as ImageIcon
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 
@@ -335,6 +337,12 @@ const EventsAdmin = () => {
   // Preview modal state
   const [previewEvent, setPreviewEvent] = useState<Event | null>(null);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  
+  // Image upload state
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [imageUploadError, setImageUploadError] = useState<string | null>(null);
 
   // Debug: Log when editingTimeForEvent changes
   useEffect(() => {
@@ -406,6 +414,75 @@ const EventsAdmin = () => {
     setIsCreating(false);
     setShowForm(false);
     setFormErrors({});
+    setSelectedImage(null);
+    setImagePreview(null);
+    setImageUploadError(null);
+  };
+
+  // Handle image upload
+  const handleImageUpload = async (file: File): Promise<string> => {
+    setIsUploadingImage(true);
+    setImageUploadError(null);
+    
+    try {
+      // Generate unique filename
+      const timestamp = Date.now();
+      const fileExtension = file.name.split('.').pop() || 'webp';
+      const fileName = `event-${timestamp}.${fileExtension}`;
+      
+      // Upload to Supabase storage
+      const { data, error } = await supabase.storage
+        .from('events')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+      
+      if (error) {
+        throw new Error(`Upload failed: ${error.message}`);
+      }
+      
+      // Get the public URL
+      const { data: urlData } = supabase.storage
+        .from('events')
+        .getPublicUrl(fileName);
+      
+      return urlData.publicUrl;
+    } catch (error: any) {
+      console.error('Image upload error:', error);
+      setImageUploadError(error.message || 'Failed to upload image');
+      throw error;
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  // Handle image selection
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setImageUploadError('Please select a valid image file');
+      return;
+    }
+    
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setImageUploadError('Image size must be less than 5MB');
+      return;
+    }
+    
+    setSelectedImage(file);
+    setImageUploadError(null);
+    
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setImagePreview(event.target?.result as string);
+    };
+    reader.readAsDataURL(file);
   };
 
   // Set form for editing
@@ -442,6 +519,11 @@ const EventsAdmin = () => {
     // Set scheduling fields
     setPublishAt(event.publish_at ? new Date(event.publish_at).toISOString().slice(0, 16) : '');
     setStatus(event.status || 'published');
+
+    // Set image preview if event has an image
+    if (event.image_path) {
+      setImagePreview(event.image_path);
+    }
 
     setIsCreating(false);
     setShowForm(true);
@@ -487,6 +569,19 @@ const EventsAdmin = () => {
       return;
     }
 
+    let imagePath = editEvent?.image_path || null;
+    
+    // Upload image if selected
+    if (selectedImage) {
+      try {
+        imagePath = await handleImageUpload(selectedImage);
+      } catch (error) {
+        setError('Failed to upload image. Please try again.');
+        setIsSubmitting(false);
+        return;
+      }
+    }
+
     const eventData: any = {
       title: title.trim(),
       date,
@@ -494,6 +589,7 @@ const EventsAdmin = () => {
       end_time: endTime ? endTime.slice(0, 5) : null,
       venue: venue.trim(),
       description: description.trim(),
+      image_path: imagePath,
       display_on: 'home',
       publish_at: publishAt ? new Date(publishAt).toISOString() : null,
       status: status,
@@ -802,6 +898,69 @@ const EventsAdmin = () => {
                       <p className="text-xs text-white/60 mt-1">
                         Draft events are only visible to admins
                       </p>
+                    </div>
+
+                    {/* Event Image Upload */}
+                    <div>
+                      <label className="block text-sm font-medium text-white mb-2">Event Image/Poster</label>
+                      <div className="space-y-3">
+                        {/* Image Preview */}
+                        {(imagePreview || editEvent?.image_path) && (
+                          <div className="relative">
+                            <img
+                              src={imagePreview || editEvent?.image_path}
+                              alt="Event preview"
+                              className="w-full h-48 object-cover rounded-lg border border-white/20"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedImage(null);
+                                setImagePreview(null);
+                                setImageUploadError(null);
+                              }}
+                              className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                              title="Remove image"
+                            >
+                              <X size={16} />
+                            </button>
+                          </div>
+                        )}
+                        
+                        {/* Upload Button */}
+                        {!imagePreview && !editEvent?.image_path && (
+                          <div className="border-2 border-dashed border-white/20 rounded-lg p-6 text-center hover:border-white/40 transition-colors">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleImageSelect}
+                              className="hidden"
+                              id="event-image-upload"
+                            />
+                            <label
+                              htmlFor="event-image-upload"
+                              className="cursor-pointer flex flex-col items-center"
+                            >
+                              <Upload className="text-white/60 mb-2" size={24} />
+                              <span className="text-white/80 text-sm mb-1">Click to upload image</span>
+                              <span className="text-white/60 text-xs">PNG, JPG, WebP up to 5MB</span>
+                            </label>
+                          </div>
+                        )}
+                        
+                        {/* Upload Progress */}
+                        {isUploadingImage && (
+                          <div className="flex items-center gap-2 text-white/80 text-sm">
+                            <Loader className="animate-spin" size={16} />
+                            <span>Uploading image...</span>
+                          </div>
+                        )}
+                        
+                        {/* Error Message */}
+                        {imageUploadError && (
+                          <div className="text-red-400 text-sm">{imageUploadError}</div>
+                        )}
+                      </div>
                     </div>
                     
 
