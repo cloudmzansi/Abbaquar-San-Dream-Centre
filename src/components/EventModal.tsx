@@ -1,8 +1,9 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Calendar, Clock, MapPin } from 'lucide-react';
+import { Calendar, Clock, MapPin, Maximize2 } from 'lucide-react';
 import { Event } from '@/types/supabase';
 import { format, parseISO } from 'date-fns';
 import { Button } from '@/components/ui/button';
+import { useState } from 'react';
 
 interface EventModalProps {
   event: Event | null;
@@ -33,11 +34,13 @@ function formatEventTime(event: Event): string {
 }
 
 const EventModal = ({ event, isOpen, onClose }: EventModalProps) => {
+  const [isImageExpanded, setIsImageExpanded] = useState(false);
+  
   if (!event) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[95vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-[#073366]">
             {event.title}
@@ -48,15 +51,19 @@ const EventModal = ({ event, isOpen, onClose }: EventModalProps) => {
         </DialogHeader>
         
         <div className="space-y-6">
-          {/* Event Image */}
+          {/* Event Image - Show full image */}
           {event.image_path && (
-            <div className="relative">
+            <div className="relative group">
               <img
                 src={event.image_path}
                 alt={event.title}
-                className="w-full h-64 object-cover rounded-lg"
+                className="w-full max-h-96 object-contain rounded-lg border border-gray-200 cursor-pointer transition-transform hover:scale-105"
                 loading="lazy"
+                onClick={() => setIsImageExpanded(true)}
               />
+              <div className="absolute top-2 right-2 bg-black bg-opacity-50 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                <Maximize2 className="h-4 w-4" />
+              </div>
             </div>
           )}
           
@@ -120,6 +127,29 @@ const EventModal = ({ event, isOpen, onClose }: EventModalProps) => {
           </div>
         </div>
       </DialogContent>
+      
+      {/* Expanded Image Modal */}
+      {isImageExpanded && event.image_path && (
+        <Dialog open={isImageExpanded} onOpenChange={setIsImageExpanded}>
+          <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 bg-transparent border-none">
+            <div className="relative">
+              <img
+                src={event.image_path}
+                alt={event.title}
+                className="w-full h-full object-contain rounded-lg"
+                loading="lazy"
+              />
+              <Button
+                onClick={() => setIsImageExpanded(false)}
+                className="absolute top-4 right-4 bg-black bg-opacity-50 hover:bg-opacity-70 text-white border-none"
+                size="sm"
+              >
+                ✕
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </Dialog>
   );
 };
