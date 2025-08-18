@@ -44,17 +44,44 @@
         padding: 0;
         background-color: #fff;
         color: #333;
+        /* Mobile-specific fixes */
+        -webkit-text-size-adjust: 100%;
+        -ms-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+        overflow-x: hidden;
       }
       #root {
         min-height: 100vh;
         display: flex;
         flex-direction: column;
+        width: 100%;
+        /* Ensure mobile compatibility */
+        position: relative;
+      }
+      /* Mobile fallback content */
+      .mobile-fallback {
+        display: none;
+        padding: 20px;
+        text-align: center;
+        background: #083060;
+        color: white;
+        min-height: 100vh;
+      }
+      @media (max-width: 768px) {
+        .mobile-fallback {
+          display: block;
+        }
       }
     </style>
   </head>
 
   <body>
     <div id="root"></div>
+    <!-- Mobile fallback content -->
+    <div class="mobile-fallback">
+      <h1>Abbaquar-San Dream Centre</h1>
+      <p>Loading...</p>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

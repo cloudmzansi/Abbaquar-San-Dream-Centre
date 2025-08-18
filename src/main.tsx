@@ -40,6 +40,17 @@ try {
     throw new Error('Root element not found. Make sure there is a div with id "root" in your HTML.');
   }
 
+  // Debug mobile issues
+  console.log('Device info:', {
+    userAgent: navigator.userAgent,
+    viewport: {
+      width: window.innerWidth,
+      height: window.innerHeight,
+      devicePixelRatio: window.devicePixelRatio
+    },
+    isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+  });
+
   const root = createRoot(rootElement);
 
   // Wrap rendering in try-catch
