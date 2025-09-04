@@ -8,6 +8,7 @@ interface BackupData {
   activities: any[];
   events: any[];
   team_members: any[];
+  volunteers: any[];
   timestamp: string;
   version: string;
 }
@@ -24,25 +25,28 @@ const BackupExport = () => {
 
     try {
       // Fetch all data from each table
-      const [galleryData, activitiesData, eventsData, teamMembersData] = await Promise.all([
+      const [galleryData, activitiesData, eventsData, teamMembersData, volunteersData] = await Promise.all([
         supabase.from('gallery').select('*'),
         supabase.from('activities').select('*'),
         supabase.from('events').select('*'),
-        supabase.from('team_members').select('*')
+        supabase.from('team_members').select('*'),
+        supabase.from('volunteers').select('*')
       ]);
 
       if (galleryData.error) throw galleryData.error;
       if (activitiesData.error) throw activitiesData.error;
       if (eventsData.error) throw eventsData.error;
       if (teamMembersData.error) throw teamMembersData.error;
+      if (volunteersData.error) throw volunteersData.error;
 
       const backupData: BackupData = {
         gallery: galleryData.data || [],
         activities: activitiesData.data || [],
         events: eventsData.data || [],
         team_members: teamMembersData.data || [],
+        volunteers: volunteersData.data || [],
         timestamp: new Date().toISOString(),
-        version: '1.0'
+        version: '1.1'
       };
 
       // Create and download the backup file
@@ -78,7 +82,7 @@ const BackupExport = () => {
       const backupData: BackupData = JSON.parse(text);
 
       // Validate backup data structure
-      if (!backupData.gallery || !backupData.activities || !backupData.events || !backupData.team_members) {
+      if (!backupData.gallery || !backupData.activities || !backupData.events || !backupData.team_members || !backupData.volunteers) {
         throw new Error('Invalid backup file format');
       }
 
@@ -92,7 +96,8 @@ const BackupExport = () => {
         supabase.from('gallery').delete().neq('id', '00000000-0000-0000-0000-000000000000'), // Delete all except dummy
         supabase.from('activities').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
         supabase.from('events').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
-        supabase.from('team_members').delete().neq('id', '00000000-0000-0000-0000-000000000000')
+        supabase.from('team_members').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
+        supabase.from('volunteers').delete().neq('id', '00000000-0000-0000-0000-000000000000')
       ]);
 
       // Check for delete errors
@@ -105,7 +110,8 @@ const BackupExport = () => {
         backupData.gallery.length > 0 ? supabase.from('gallery').insert(backupData.gallery) : Promise.resolve({ error: null }),
         backupData.activities.length > 0 ? supabase.from('activities').insert(backupData.activities) : Promise.resolve({ error: null }),
         backupData.events.length > 0 ? supabase.from('events').insert(backupData.events) : Promise.resolve({ error: null }),
-        backupData.team_members.length > 0 ? supabase.from('team_members').insert(backupData.team_members) : Promise.resolve({ error: null })
+        backupData.team_members.length > 0 ? supabase.from('team_members').insert(backupData.team_members) : Promise.resolve({ error: null }),
+        backupData.volunteers.length > 0 ? supabase.from('volunteers').insert(backupData.volunteers) : Promise.resolve({ error: null })
       ]);
 
       // Check for insert errors
@@ -225,7 +231,7 @@ const BackupExport = () => {
             <Database className="w-6 h-6 text-[#4f7df9] mr-3" />
             <h2 className="text-xl font-semibold text-white">Data Overview</h2>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
             <div className="text-center p-4 bg-white/5 rounded-lg border border-white/10">
               <Image className="w-8 h-8 text-blue-400 mx-auto mb-2" />
               <p className="text-white font-semibold">Gallery Images</p>
@@ -243,13 +249,18 @@ const BackupExport = () => {
             </div>
             <div className="text-center p-4 bg-white/5 rounded-lg border border-white/10">
               <Users className="w-8 h-8 text-indigo-400 mx-auto mb-2" />
-              <p className="text-white font-semibold">Team Members</p>
-              <p className="text-white/70 text-sm">Staff & leadership</p>
+              <p className="text-white font-semibold">Leadership</p>
+              <p className="text-white/70 text-sm">Royal House</p>
             </div>
             <div className="text-center p-4 bg-white/5 rounded-lg border border-white/10">
-              <Clock className="w-8 h-8 text-orange-400 mx-auto mb-2" />
-              <p className="text-white font-semibold">Scheduled</p>
-              <p className="text-white/70 text-sm">Auto-publishing</p>
+              <Users className="w-8 h-8 text-yellow-400 mx-auto mb-2" />
+              <p className="text-white font-semibold">Management</p>
+              <p className="text-white/70 text-sm">Staff & directors</p>
+            </div>
+            <div className="text-center p-4 bg-white/5 rounded-lg border border-white/10">
+              <Users className="w-8 h-8 text-orange-400 mx-auto mb-2" />
+              <p className="text-white font-semibold">Volunteers</p>
+              <p className="text-white/70 text-sm">Support team</p>
             </div>
           </div>
         </div>

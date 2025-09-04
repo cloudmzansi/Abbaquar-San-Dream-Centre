@@ -31,6 +31,9 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
     { icon: FileImage, label: 'Activities', path: '/login/activities' },
     { icon: Users, label: 'Team & Volunteers', path: '/login/team' },
     { icon: Calendar, label: 'Events', path: '/login/events' },
+  ];
+
+  const toolItems = [
     { icon: Database, label: 'Backup', path: '/login/backup' },
   ];
 
@@ -73,7 +76,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
             </div>
             <div>
               <div className="uppercase text-xs text-white/40 mb-2 pl-2 tracking-widest">Content</div>
-              {navItems.slice(1, 6).map((item) => (
+              {navItems.slice(1, 5).map((item) => (
                 <Link
                   key={item.path}
                   to={item.path}
@@ -90,7 +93,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
             </div>
             <div>
               <div className="uppercase text-xs text-white/40 mb-2 pl-2 tracking-widest">Tools</div>
-              {navItems.slice(6).map((item) => (
+              {toolItems.map((item) => (
                 <Link
                   key={item.path}
                   to={item.path}

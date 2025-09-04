@@ -38,7 +38,10 @@ const TABLES = [
   'activities',
   'events', 
   'gallery',
+  'team_members',
+  'volunteers',
   'contact_messages',
+  'contact_submissions',
   'donations'
 ];
 

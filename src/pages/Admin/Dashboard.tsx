@@ -1,10 +1,8 @@
 import { useState, useEffect, useReducer } from 'react';
 import { format } from 'date-fns';
 import AdminLayout from '@/components/admin/AdminLayout';
-import TimeWidget from '@/components/admin/TimeWidget';
-import WeatherWidget from '@/components/admin/WeatherWidget';
 import { getDashboardData, getSystemHealth } from '@/lib/dashboardService';
-import { RefreshCw, Users, Calendar, Image, Database, Activity } from 'lucide-react';
+import { Users, Calendar, Image, Database, Activity } from 'lucide-react';
 
 interface DashboardState {
   stats: {
@@ -129,11 +127,6 @@ const AdminDashboard = () => {
     fetchSystemHealth();
   }, []);
 
-  const handleRefresh = () => {
-    fetchDashboardData();
-    fetchSystemHealth();
-  };
-
   // Show loading state
   if (state.isLoading) {
     return (
@@ -159,17 +152,6 @@ const AdminDashboard = () => {
               <p className="mt-1 text-white/70">Today is {format(new Date(), 'EEEE, MMMM d, yyyy')}</p>
             </div>
             <div className="flex items-center gap-3">
-              <button
-                onClick={handleRefresh}
-                className="flex items-center px-4 py-2 bg-[#4f7df9] text-white rounded-lg hover:bg-[#4f7df9]/80 transition-colors shadow"
-              >
-                <RefreshCw size={16} className="mr-2" />
-                Refresh
-              </button>
-              <div className="flex gap-3">
-                <TimeWidget />
-                <WeatherWidget />
-              </div>
             </div>
           </div>
           
@@ -201,17 +183,6 @@ const AdminDashboard = () => {
             <p className="mt-1 text-white/70">Today is {format(new Date(), 'EEEE, MMMM d, yyyy')}</p>
           </div>
           <div className="flex items-center gap-3">
-            <button
-              onClick={handleRefresh}
-              className="flex items-center px-4 py-2 bg-[#4f7df9] text-white rounded-lg hover:bg-[#4f7df9]/80 transition-colors shadow"
-            >
-              <RefreshCw size={16} className="mr-2" />
-              Refresh
-            </button>
-            <div className="flex gap-3">
-              <TimeWidget />
-              <WeatherWidget />
-            </div>
           </div>
         </div>
 
