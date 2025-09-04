@@ -41,3 +41,6 @@ dist-ssr
 .vercel
 .firebase
 .env*.local
+
+*storybook.log
+storybook-static

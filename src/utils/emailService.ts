@@ -11,7 +11,7 @@ const WEB3FORMS_ACCESS_KEY = 'b61aef1b-4125-420c-8ec9-1509fe524e61';
  * @param formData The form data from the contact form
  * @returns Promise resolving to success or error
  */
-export const sendContactEmail = async (formData: ContactFormData): Promise<{ success: boolean; message: string; details?: any }> => {
+export const sendContactEmail = async (formData: ContactFormData): Promise<{ success: boolean; message: string; details?: Record<string, unknown> }> => {
   try {
     // Prepare data for Web3Forms
     const formPayload = {

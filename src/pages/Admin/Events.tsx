@@ -68,7 +68,9 @@ function formatEventTimeRange(start?: string, end?: string): string {
     try {
       const d = new Date(t);
       if (!isNaN(d.getTime())) return format(d, 'HH:mm');
-    } catch {}
+    } catch {
+      // Ignore date parsing errors
+    }
     return t;
   };
   const s = parseTime(start);

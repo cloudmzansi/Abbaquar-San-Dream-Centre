@@ -34,15 +34,16 @@ const Hero = memo(() => {
               No matter what stage, age, or season you find yourself in, the Abbaquar-San Dream Centre is for you! 
               We invite you to come just as you are and be part of this community.
             </p>
+            
             <div className="flex flex-row flex-wrap gap-4 justify-center md:justify-start">
               <a href="/#donate" 
-                className="bg-[#D72660] text-white px-8 py-3.5 text-lg rounded-xl font-semibold hover:bg-opacity-90 transition-all"
+                className="bg-[#D72660] text-white px-8 py-3.5 text-lg rounded-xl font-semibold hover:bg-opacity-90 transition-all transform hover:scale-105"
               >
-                Donate Now
+                Donate Now - Help Today
               </a>
               <Link 
                 to="/activities" 
-                className="bg-[#083060] text-white px-8 py-3.5 text-lg rounded-xl font-semibold hover:bg-opacity-90 transition-all border border-white/20"
+                className="bg-[#083060] text-white px-8 py-3.5 text-lg rounded-xl font-semibold hover:bg-opacity-90 transition-all border border-white/20 transform hover:scale-105"
               >
                 Our Activities
               </Link>

@@ -6,9 +6,9 @@
 // Validation patterns
 const PATTERNS = {
   EMAIL: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-  PHONE: /^[\+]?[1-9][\d]{0,15}$/,
+  PHONE: /^[+]?[1-9][\d]{0,15}$/,
   NAME: /^[a-zA-Z\s'-]{2,50}$/,
-  URL: /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/,
+  URL: /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)$/,
   ALPHANUMERIC: /^[a-zA-Z0-9\s]+$/,
   SAFE_TEXT: /^[a-zA-Z0-9\s.,!?-]+$/,
   DATE: /^\d{4}-\d{2}-\d{2}$/,
@@ -35,7 +35,7 @@ const ERROR_MESSAGES = {
 
 // Validation functions
 export const validators = {
-  required: (value: any): string | null => {
+  required: (value: unknown): string | null => {
     if (!value || (typeof value === 'string' && value.trim() === '')) {
       return ERROR_MESSAGES.REQUIRED;
     }
@@ -206,7 +206,7 @@ export const sanitizers = {
 
 // Validation schema interface
 interface ValidationSchema {
-  [key: string]: Array<(value: any) => string | null>;
+  [key: string]: Array<(value: unknown) => string | null>;
 }
 
 // Validation result interface
@@ -216,7 +216,7 @@ interface ValidationResult {
 }
 
 // Main validation function
-export function validate(data: any, schema: ValidationSchema): ValidationResult {
+export function validate(data: Record<string, unknown>, schema: ValidationSchema): ValidationResult {
   const errors: { [key: string]: string } = {};
   
   for (const [field, validators] of Object.entries(schema)) {
@@ -273,8 +273,8 @@ export const schemas = {
 };
 
 // Utility function to sanitize data
-export function sanitizeData(data: any, sanitizers: { [key: string]: Array<(value: any) => any> }): any {
-  const sanitized: any = {};
+export function sanitizeData(data: Record<string, unknown>, sanitizers: { [key: string]: Array<(value: unknown) => unknown> }): Record<string, unknown> {
+  const sanitized: Record<string, unknown> = {};
   
   for (const [field, fieldSanitizers] of Object.entries(sanitizers)) {
     let value = data[field];

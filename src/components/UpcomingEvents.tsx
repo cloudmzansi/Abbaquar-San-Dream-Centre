@@ -48,13 +48,12 @@ const EventCard = memo(({ event, onClick }: { event: Event; onClick: (event: Eve
           <div className="bg-white rounded-2xl p-3 shadow-sm">
             <Calendar className="h-6 w-6 text-[#8A4BA3]" />
           </div>
-          <span className="text-sm font-medium text-[#8A4BA3] bg-[#8A4BA3]/10 px-3 py-1 rounded-full">
-            Upcoming
-          </span>
         </div>
+        
         <h3 className="text-xl font-semibold text-[#073366] mt-2 group-hover:text-[#8A4BA3] transition-colors">
           {event.title}
         </h3>
+        
         <div className="space-y-2">
           <div className="flex items-center text-gray-600">
             <Calendar className="h-4 w-4 mr-2" />
@@ -69,16 +68,17 @@ const EventCard = memo(({ event, onClick }: { event: Event; onClick: (event: Eve
             <span className="text-sm">{event.venue}</span>
           </div>
         </div>
+        
         <p className="text-gray-600 text-sm line-clamp-3">{event.description}</p>
         
-        {/* Click indicator */}
-        <div className="flex items-center justify-between pt-2">
-          <div className="flex items-center text-[#8A4BA3] text-sm font-medium">
-            <Eye className="h-4 w-4 mr-1" />
-            View Details
-          </div>
-          <ArrowRight className="h-4 w-4 text-[#8A4BA3]" />
-        </div>
+        {/* Action Button */}
+        <button 
+          onClick={() => onClick(event)}
+          className="w-full bg-[#8A4BA3] text-white py-2 rounded-lg hover:bg-[#7A3B93] transition-colors text-sm font-medium mt-4 flex items-center justify-center gap-2"
+        >
+          <Eye className="h-4 w-4" />
+          View Details
+        </button>
       </div>
     </div>
   );
@@ -104,33 +104,30 @@ const UpcomingEvents = ({ displayOn = 'home' }: UpcomingEventsProps) => {
     return () => window.removeEventListener('resize', checkMobile);
   }, [checkMobile]);
 
-  // Fetch events with useCallback to prevent unnecessary recreation
-  const fetchEvents = useCallback(async () => {
+  // Load events
+  useEffect(() => {
     setIsLoading(true);
     setError(null);
     
-    try {
-      const data = await getEvents(displayOn);
-      setEvents(data);
-    } catch (err) {
-      console.error('Error loading events:', err);
-      setError('Failed to load events. Please try again later.');
-    } finally {
-      setIsLoading(false);
-    }
+    getEvents(displayOn)
+      .then(data => {
+        setEvents(data);
+        setIsLoading(false);
+      })
+      .catch(err => {
+        console.error('Error loading events:', err);
+        setError('Failed to load events. Please try again later.');
+        setIsLoading(false);
+      });
   }, [displayOn]);
-  
-  // Fetch events when displayOn changes
-  useEffect(() => {
-    fetchEvents();
-  }, [fetchEvents]);
 
-  // Handle event click
+  // Memoize event click handler
   const handleEventClick = useCallback((event: Event) => {
     setSelectedEvent(event);
     setIsModalOpen(true);
   }, []);
 
+  // Memoize modal close handler
   const closeModal = useCallback(() => {
     setIsModalOpen(false);
     setSelectedEvent(null);
@@ -212,7 +209,7 @@ const UpcomingEvents = ({ displayOn = 'home' }: UpcomingEventsProps) => {
           <div className="text-center mt-12">
             <a 
               href="/events" 
-              className="inline-flex items-center bg-[#8A4BA3] text-white px-8 py-3 rounded-xl font-semibold hover:bg-[#7A3B93] transition-colors"
+              className="inline-flex items-center bg-[#8A4BA3] text-white px-8 py-3 rounded-xl font-semibold hover:bg-[#7A3B93] transition-colors transform hover:scale-105"
             >
               View All Events
               <ArrowRight className="ml-2 h-5 w-5" />

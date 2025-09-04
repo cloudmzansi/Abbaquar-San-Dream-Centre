@@ -4,8 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useEffect, Suspense } from 'react';
 import { SpeedInsights } from "@vercel/speed-insights/react";
+import { HelmetProvider } from 'react-helmet-async';
 import ProtectedRoute from "./components/admin/ProtectedRoute";
-import { lazyLoad, lazyLoadWithSkeleton } from "./utils/lazyLoad";
 
 
 // Eagerly load critical routes for best performance
@@ -14,8 +14,7 @@ import NotFound from "./pages/NotFound";
 
 // Lazy load non-critical routes to reduce initial bundle size
 import { lazy } from 'react';
-
-const LoadingFallback = () => <div className="h-screen w-full flex items-center justify-center"><div className="animate-pulse rounded-xl bg-muted h-12 w-12"></div></div>;
+import { PageLoadingFallback } from './components/ui/loading-fallback';
 
 // Lazy load non-critical routes
 const Gallery = lazy(() => import("./pages/Gallery"));
@@ -78,11 +77,11 @@ const AppRoutes = () => {
     <Routes>
       {/* Public Routes */}
       <Route path="/" element={<Index />} />
-      <Route path="/gallery" element={<Suspense fallback={<LoadingFallback />}><Gallery /></Suspense>} />
-      <Route path="/about-us" element={<Suspense fallback={<LoadingFallback />}><AboutUs /></Suspense>} />
-      <Route path="/activities" element={<Suspense fallback={<LoadingFallback />}><Activities /></Suspense>} />
-      <Route path="/events" element={<Suspense fallback={<LoadingFallback />}><Events /></Suspense>} />
-      <Route path="/contact" element={<Suspense fallback={<LoadingFallback />}><Contact /></Suspense>} />
+      <Route path="/gallery" element={<Suspense fallback={<PageLoadingFallback />}><Gallery /></Suspense>} />
+      <Route path="/about-us" element={<Suspense fallback={<PageLoadingFallback />}><AboutUs /></Suspense>} />
+      <Route path="/activities" element={<Suspense fallback={<PageLoadingFallback />}><Activities /></Suspense>} />
+      <Route path="/events" element={<Suspense fallback={<PageLoadingFallback />}><Events /></Suspense>} />
+      <Route path="/contact" element={<Suspense fallback={<PageLoadingFallback />}><Contact /></Suspense>} />
       
       {/* Admin Routes */}
       <Route path="/login" element={<Navigate to="/login/dashboard" replace />} />
@@ -91,7 +90,7 @@ const AppRoutes = () => {
         path="/login/dashboard" 
         element={
           <ProtectedRoute>
-            <Suspense fallback={<LoadingFallback />}>
+            <Suspense fallback={<PageLoadingFallback />}>
               <AdminDashboard />
             </Suspense>
           </ProtectedRoute>
@@ -101,7 +100,7 @@ const AppRoutes = () => {
         path="/login/gallery" 
         element={
           <ProtectedRoute>
-            <Suspense fallback={<LoadingFallback />}>
+            <Suspense fallback={<PageLoadingFallback />}>
               <GalleryAdmin />
             </Suspense>
           </ProtectedRoute>
@@ -111,7 +110,7 @@ const AppRoutes = () => {
         path="/login/activities" 
         element={
           <ProtectedRoute>
-            <Suspense fallback={<LoadingFallback />}>
+            <Suspense fallback={<PageLoadingFallback />}>
               <ActivitiesAdmin />
             </Suspense>
           </ProtectedRoute>
@@ -121,7 +120,7 @@ const AppRoutes = () => {
         path="/login/team" 
         element={
           <ProtectedRoute>
-            <Suspense fallback={<LoadingFallback />}>
+            <Suspense fallback={<PageLoadingFallback />}>
               <TeamAdmin />
             </Suspense>
           </ProtectedRoute>
@@ -131,7 +130,7 @@ const AppRoutes = () => {
         path="/login/volunteers" 
         element={
           <ProtectedRoute>
-            <Suspense fallback={<LoadingFallback />}>
+            <Suspense fallback={<PageLoadingFallback />}>
               <VolunteersAdmin />
             </Suspense>
           </ProtectedRoute>
@@ -141,7 +140,7 @@ const AppRoutes = () => {
         path="/login/events" 
         element={
           <ProtectedRoute>
-            <Suspense fallback={<LoadingFallback />}>
+            <Suspense fallback={<PageLoadingFallback />}>
               <EventsAdmin />
             </Suspense>
           </ProtectedRoute>
@@ -152,7 +151,7 @@ const AppRoutes = () => {
         path="/login/backup" 
         element={
           <ProtectedRoute>
-            <Suspense fallback={<LoadingFallback />}>
+            <Suspense fallback={<PageLoadingFallback />}>
               <BackupExport />
             </Suspense>
           </ProtectedRoute>
@@ -175,14 +174,16 @@ const AppRoutes = () => {
 
 const App = () => {
   return (
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <SpeedInsights />
-      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        <AppRoutes />
-      </BrowserRouter>
-    </TooltipProvider>
+    <HelmetProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <SpeedInsights />
+        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <AppRoutes />
+        </BrowserRouter>
+      </TooltipProvider>
+    </HelmetProvider>
   );
 };
 

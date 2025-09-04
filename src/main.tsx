@@ -7,6 +7,7 @@ import '@/styles/leaflet.css';
 import { reportWebVitals } from './reportWebVitals';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
+import { errorHandler } from './lib/errorHandler';
 
 // Register service worker for improved performance and offline capabilities
 if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
@@ -16,19 +17,28 @@ if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
         console.log('ServiceWorker registration successful with scope: ', registration.scope);
       })
       .catch(error => {
-        console.error('ServiceWorker registration failed: ', error);
+        errorHandler.handleError(error, { 
+          operation: 'ServiceWorker registration',
+          component: 'main.tsx'
+        });
       });
   });
 }
 
 // Add global error handler to catch unhandled exceptions
 window.addEventListener('error', (event) => {
-  console.error('Global error caught:', event.error);
+  errorHandler.handleError(event.error, { 
+    operation: 'Global error handler',
+    component: 'main.tsx'
+  });
 });
 
 // Add unhandled promise rejection handler
 window.addEventListener('unhandledrejection', (event) => {
-  console.error('Unhandled Promise Rejection:', event.reason);
+  errorHandler.handleError(event.reason, { 
+    operation: 'Unhandled promise rejection',
+    component: 'main.tsx'
+  });
 });
 
 try {
@@ -65,7 +75,10 @@ try {
     );
     console.log('App rendered successfully');
   } catch (renderError) {
-    console.error('Error rendering React application:', renderError);
+    errorHandler.handleError(renderError, { 
+      operation: 'React application rendering',
+      component: 'main.tsx'
+    });
     // Display a fallback UI
     rootElement.innerHTML = `
       <div style="padding: 20px; text-align: center;">
@@ -80,7 +93,10 @@ try {
     reportWebVitals();
   }
 } catch (error) {
-  console.error('Critical application error:', error);
+  errorHandler.handleError(error, { 
+    operation: 'Critical application initialization',
+    component: 'main.tsx'
+  });
   // Try to display error message even if React fails to initialize
   document.body.innerHTML = `
     <div style="padding: 20px; text-align: center;">

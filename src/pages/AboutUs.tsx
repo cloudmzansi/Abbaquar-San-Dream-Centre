@@ -5,6 +5,8 @@ import { useState, useEffect } from 'react';
 import { getTeamMembers } from '@/lib/teamService';
 import { getVolunteers } from '@/lib/volunteerService';
 import { TeamMember, Volunteer } from '@/types/supabase';
+import { SEO, SEOConfigs } from "@/components/SEO";
+import { Breadcrumb } from "@/components/Breadcrumb";
 
 const AboutUs = () => {
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
@@ -33,15 +35,19 @@ const AboutUs = () => {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <Header />
-      <main className="flex-grow">
+    <>
+      <SEO {...SEOConfigs.about} />
+      <div className="flex flex-col min-h-screen">
+        <Header />
+        <Breadcrumb />
+        <main className="flex-grow">
         {/* Hero Section */}
         <section aria-labelledby="hero-title" className="bg-[#073366] text-white py-24 pt-32">
           <div className="container-custom">
-            <h1 id="hero-title" className="text-4xl md:text-5xl font-bold mb-6 text-center">About Us</h1>
+            <h1 id="hero-title" className="text-4xl md:text-5xl font-bold mb-6 text-center font-serif">About Us</h1>
             <p className="text-xl text-center max-w-3xl mx-auto">
-              Empowering the Youth
+              We are a cultural organisation dedicated to assisting, uplifting and rebuilding our community. 
+              Our focus is on empowering the youth and supporting the elderly through various programs and activities.
             </p>
           </div>
         </section>
@@ -107,15 +113,15 @@ const AboutUs = () => {
           </div>
         </section>
 
-        {/* Our Team Section */}
-        <section aria-labelledby="our-team-title" className="py-16 md:py-24 bg-white">
+        {/* Leadership Section */}
+        <section aria-labelledby="leadership-title" className="py-16 md:py-24 bg-white">
           <div className="container-custom">
             <div className="max-w-4xl mx-auto text-center mb-16">
-              <span className="text-[#D72660] font-semibold mb-4 block">Meet Our People</span>
-              <h2 id="our-team-title" className="text-4xl md:text-5xl font-bold mb-6 text-[#073366] font-serif">Our Team</h2>
+              <span className="text-[#D72660] font-semibold mb-4 block">Royal House</span>
+              <h2 id="leadership-title" className="text-4xl md:text-5xl font-bold mb-6 text-[#073366] font-serif">Leadership</h2>
               <div className="mx-auto w-24 h-1 bg-[#D72660] rounded mb-6" />
               <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
-                Dedicated individuals working together to make a difference in our community.
+                Our Royal House leadership represents the official recognition of our traditional authority under South African law. These esteemed leaders embody our cultural heritage and provide spiritual guidance, ensuring our community programs remain rooted in traditional values while serving the modern needs of our youth and elderly.
               </p>
             </div>
             
@@ -128,9 +134,60 @@ const AboutUs = () => {
                 <p>{error}</p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
-                {teamMembers.map((member, index) => (
-                  <div key={member.id} className="bg-white rounded-2xl overflow-hidden shadow-lg text-center">
+              <div className="flex flex-wrap justify-center gap-4 md:gap-6">
+                {teamMembers.filter(member => member.category === 'leadership').map((member, index) => (
+                  <div key={member.id} className="bg-white rounded-2xl overflow-hidden shadow-lg text-center w-56 md:w-64">
+                    <div className="aspect-square overflow-hidden">
+                      {member.image_path ? (
+                        <img 
+                          src={member.image_path} 
+                          alt={`${member.name} - ${member.role}`}
+                          className="w-full object-cover object-top"
+                          width="208"
+                          height="208"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                          <Users className="w-12 h-12 text-gray-400" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-3 md:p-4">
+                      <h3 className="font-bold text-[#073366] text-sm md:text-base">{member.name}</h3>
+                      <p className="text-gray-600 text-xs md:text-sm mt-1">{member.role}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* Management Section */}
+        <section aria-labelledby="management-title" className="py-16 md:py-24 bg-gray-50">
+          <div className="container-custom">
+            <div className="max-w-4xl mx-auto text-center mb-16">
+              <span className="text-[#D72660] font-semibold mb-4 block">Operations</span>
+              <h2 id="management-title" className="text-4xl md:text-5xl font-bold mb-6 text-[#073366] font-serif">Management</h2>
+              <div className="mx-auto w-24 h-1 bg-[#D72660] rounded mb-6" />
+              <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
+                Our management team handles the operational aspects of our community programs, from financial oversight to program coordination. These dedicated professionals ensure our youth activities, elderly support services, and community initiatives run effectively, making our mission of uplifting and rebuilding the community a reality.
+              </p>
+            </div>
+            
+            {isLoading ? (
+              <div className="flex justify-center items-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#073366]"></div>
+              </div>
+            ) : error ? (
+              <div className="bg-red-50 p-6 rounded-lg text-center text-red-600 mb-8">
+                <p>{error}</p>
+              </div>
+            ) : (
+              <div className="flex flex-wrap justify-center gap-4 md:gap-6">
+                {teamMembers.filter(member => member.category === 'management').map((member, index) => (
+                  <div key={member.id} className="bg-white rounded-2xl overflow-hidden shadow-lg text-center w-56 md:w-64">
                     <div className="aspect-square overflow-hidden">
                       {member.image_path ? (
                         <img 
@@ -159,14 +216,14 @@ const AboutUs = () => {
         </section>
 
         {/* Volunteers Section */}
-        <section aria-labelledby="volunteers-title" className="py-16 md:py-24 bg-gray-50">
+        <section aria-labelledby="volunteers-title" className="py-16 md:py-24 bg-white">
           <div className="container-custom">
             <div className="max-w-4xl mx-auto text-center mb-16">
               <span className="text-[#D72660] font-semibold mb-4 block">Our Community Heroes</span>
               <h2 id="volunteers-title" className="text-4xl md:text-5xl font-bold mb-6 text-[#073366] font-serif">Volunteers</h2>
               <div className="mx-auto w-24 h-1 bg-[#D72660] rounded mb-6" />
               <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
-                Passionate volunteers who dedicate their time and skills to support our mission.
+                Our volunteers are the backbone of our community programs, working directly with youth in our ballet, karate, dance, and music activities. These dedicated community members provide mentorship, safety oversight, and hands-on support, helping us create the safe haven and skills development environment that empowers our youth to achieve their dreams.
               </p>
             </div>
             
@@ -179,9 +236,9 @@ const AboutUs = () => {
                 <p>{error}</p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
+              <div className="flex flex-wrap justify-center gap-4 md:gap-6">
                 {volunteers.map((volunteer, index) => (
-                  <div key={volunteer.id} className="bg-white rounded-2xl overflow-hidden shadow-lg text-center">
+                  <div key={volunteer.id} className="bg-white rounded-2xl overflow-hidden shadow-lg text-center w-56 md:w-64">
                     <div className="aspect-square overflow-hidden">
                       {volunteer.image_path ? (
                         <img 
@@ -257,9 +314,10 @@ const AboutUs = () => {
             </div>
           </div>
         </section>
-      </main>
-      <Footer />
-    </div>
+              </main>
+        <Footer />
+      </div>
+    </>
   );
 };
 

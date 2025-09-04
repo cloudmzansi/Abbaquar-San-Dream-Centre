@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { getAllVolunteers, createVolunteer, updateVolunteer, deleteVolunteer, updateVolunteerOrder } from '@/lib/volunteerService';
 import { Volunteer } from '@/types/supabase';
+import { errorHandler } from '@/lib/errorHandler';
 import { 
   Users, 
   Loader, 
@@ -27,7 +28,7 @@ import {
   UserCheck,
   UserX
 } from 'lucide-react';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 
 const VolunteersAdmin = () => {
   const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
@@ -40,12 +41,14 @@ const VolunteersAdmin = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
+  const [filterCategory, setFilterCategory] = useState<'all' | 'leadership' | 'management' | 'volunteers'>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showForm, setShowForm] = useState(false);
 
   // Form states for new/edit volunteer
   const [name, setName] = useState('');
   const [role, setRole] = useState('');
+  const [category, setCategory] = useState<'leadership' | 'management' | 'volunteers'>('volunteers');
   const [sortOrder, setSortOrder] = useState<number>(0);
   const [isActive, setIsActive] = useState(true);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -60,8 +63,11 @@ const VolunteersAdmin = () => {
       const volunteerList = await getAllVolunteers();
       setVolunteers(volunteerList);
       setFilteredVolunteers(volunteerList);
-    } catch (err: any) {
-      console.error('Failed to load volunteers:', err);
+    } catch (err: unknown) {
+      errorHandler.handleError(err, { 
+        operation: 'Loading volunteers', 
+        component: 'VolunteersAdmin' 
+      });
       setError('Failed to load volunteers. Please try again later.');
     } finally {
       setIsLoading(false);
@@ -83,6 +89,13 @@ const VolunteersAdmin = () => {
       );
     }
 
+    // Filter by category
+    if (filterCategory !== 'all') {
+      filtered = filtered.filter(volunteer => 
+        volunteer.category === filterCategory
+      );
+    }
+
     // Filter by search term
     if (searchTerm) {
       filtered = filtered.filter(volunteer =>
@@ -92,7 +105,7 @@ const VolunteersAdmin = () => {
     }
 
     setFilteredVolunteers(filtered);
-  }, [volunteers, searchTerm, filterStatus]);
+  }, [volunteers, searchTerm, filterStatus, filterCategory]);
 
   // Clear success message after 3 seconds
   useEffect(() => {
@@ -119,6 +132,7 @@ const VolunteersAdmin = () => {
   const resetForm = () => {
     setName('');
     setRole('');
+    setCategory('volunteers');
     setSortOrder(0);
     setIsActive(true);
     setImageFile(null);
@@ -152,6 +166,7 @@ const VolunteersAdmin = () => {
         await createVolunteer({
           name,
           role,
+          category,
           sort_order: finalSortOrder,
           is_active: isActive,
           image_path: editVolunteer?.image_path
@@ -161,6 +176,7 @@ const VolunteersAdmin = () => {
         await updateVolunteer(editVolunteer.id, {
           name,
           role,
+          category,
           sort_order: finalSortOrder,
           is_active: isActive,
           image_path: editVolunteer.image_path
@@ -170,9 +186,12 @@ const VolunteersAdmin = () => {
 
       await loadVolunteers();
       resetForm();
-    } catch (err: any) {
-      console.error('Failed to save volunteer:', err);
-      setError(err.message || 'Failed to save volunteer. Please try again.');
+    } catch (err: unknown) {
+      errorHandler.handleError(err, { 
+        operation: 'Saving volunteer', 
+        component: 'VolunteersAdmin' 
+      });
+      setError(err instanceof Error ? err.message : 'Failed to save volunteer. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -187,6 +206,7 @@ const VolunteersAdmin = () => {
     setEditVolunteer(volunteer);
     setName(volunteer.name);
     setRole(volunteer.role);
+    setCategory(volunteer.category || 'volunteers');
     setSortOrder(volunteer.sort_order || 0);
     setIsActive(volunteer.is_active || true);
     setImagePreview(volunteer.image_path || null);
@@ -212,14 +232,17 @@ const VolunteersAdmin = () => {
       await deleteVolunteer(id);
       setSuccessMessage('Volunteer deleted successfully!');
       await loadVolunteers();
-    } catch (err: any) {
-      console.error('Failed to delete volunteer:', err);
-      setError(err.message || 'Failed to delete volunteer. Please try again.');
+    } catch (err: unknown) {
+      errorHandler.handleError(err, { 
+        operation: 'Deleting volunteer', 
+        component: 'VolunteersAdmin' 
+      });
+      setError(err instanceof Error ? err.message : 'Failed to delete volunteer. Please try again.');
     }
   };
 
   // Handle drag and drop reordering
-  const handleDragEnd = async (result: any) => {
+  const handleDragEnd = async (result: DropResult) => {
     if (!result.destination) return;
 
     const items = Array.from(filteredVolunteers);
@@ -236,8 +259,11 @@ const VolunteersAdmin = () => {
 
     try {
       await updateVolunteerOrder(updatedItems.map(item => ({ id: item.id, sort_order: item.sort_order || 0 })));
-    } catch (err: any) {
-      console.error('Failed to update volunteer order:', err);
+    } catch (err: unknown) {
+      errorHandler.handleError(err, { 
+        operation: 'Updating volunteer order', 
+        component: 'VolunteersAdmin' 
+      });
       setError('Failed to update volunteer order. Please refresh the page.');
     }
   };
@@ -306,6 +332,21 @@ const VolunteersAdmin = () => {
               </select>
             </div>
 
+            {/* Category Filter */}
+            <div className="flex items-center gap-2">
+              <Filter className="w-4 h-4 text-white/50" />
+              <select
+                value={filterCategory}
+                onChange={(e) => setFilterCategory(e.target.value as 'all' | 'leadership' | 'management' | 'volunteers')}
+                className="bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-[#4f7df9]/50"
+              >
+                <option value="all" className="bg-[#1a365d]">All Categories</option>
+                <option value="leadership" className="bg-[#1a365d]">Leadership</option>
+                <option value="management" className="bg-[#1a365d]">Management</option>
+                <option value="volunteers" className="bg-[#1a365d]">Volunteers</option>
+              </select>
+            </div>
+
             {/* View Mode Toggle */}
             <div className="flex items-center gap-1 bg-white/10 rounded-lg p-1">
               <button
@@ -359,6 +400,18 @@ const VolunteersAdmin = () => {
                       <div>
                         <h3 className="font-semibold text-white mb-1">{volunteer.name}</h3>
                         <p className="text-white/70 text-sm">{volunteer.role}</p>
+                        <div className="mt-2">
+                          <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
+                            volunteer.category === 'leadership' 
+                              ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30' 
+                              : volunteer.category === 'management'
+                              ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                              : 'bg-green-500/20 text-green-300 border border-green-500/30'
+                          }`}>
+                            {volunteer.category === 'leadership' ? 'Leadership' : 
+                             volunteer.category === 'management' ? 'Management' : 'Volunteers'}
+                          </span>
+                        </div>
                       </div>
 
                       <div className="mt-4 flex items-center justify-center space-x-2">
@@ -426,6 +479,18 @@ const VolunteersAdmin = () => {
                                 <div className="flex-1">
                                   <h3 className="font-semibold text-white mb-1">{volunteer.name}</h3>
                                   <p className="text-white/70 text-sm">{volunteer.role}</p>
+                                  <div className="mt-1">
+                                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
+                                      volunteer.category === 'leadership' 
+                                        ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30' 
+                                        : volunteer.category === 'management'
+                                        ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                                        : 'bg-green-500/20 text-green-300 border border-green-500/30'
+                                    }`}>
+                                      {volunteer.category === 'leadership' ? 'Leadership' : 
+                                       volunteer.category === 'management' ? 'Management' : 'Volunteers'}
+                                    </span>
+                                  </div>
                                 </div>
                               </div>
 
@@ -505,6 +570,23 @@ const VolunteersAdmin = () => {
                         className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-[#4f7df9]/50"
                         placeholder="Enter volunteer role"
                       />
+                    </div>
+
+                    {/* Category */}
+                    <div>
+                      <label className="block text-sm font-medium text-white mb-2">
+                        Category *
+                      </label>
+                      <select
+                        value={category}
+                        onChange={(e) => setCategory(e.target.value as 'leadership' | 'management' | 'volunteers')}
+                        required
+                        className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#4f7df9]/50"
+                      >
+                        <option value="leadership">Leadership (Royal House)</option>
+                        <option value="management">Management</option>
+                        <option value="volunteers">Volunteers</option>
+                      </select>
                     </div>
                   </div>
 

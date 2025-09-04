@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { getActivities, createActivity, updateActivity, deleteActivity, updateActivityOrder } from '@/lib/activitiesService';
 import { Activity } from '@/types/supabase';
+import { errorHandler } from '@/lib/errorHandler';
 import { 
   FileImage, 
   Loader, 
@@ -62,7 +63,10 @@ const ActivitiesAdmin = () => {
       setActivities(data);
       setFilteredActivities(data);
     } catch (err: any) {
-      console.error('Failed to load activities:', err);
+      errorHandler.handleError(err, { 
+        operation: 'Loading activities', 
+        component: 'ActivitiesAdmin' 
+      });
       setError('Failed to load activities. Please try again.');
     } finally {
       setIsLoading(false);
@@ -221,7 +225,10 @@ const ActivitiesAdmin = () => {
       // Clear success message after 3 seconds
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err: any) {
-      console.error('Error saving activity:', err);
+      errorHandler.handleError(err, { 
+        operation: 'Saving activity', 
+        component: 'ActivitiesAdmin' 
+      });
       setError('Failed to save activity. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -304,7 +311,10 @@ const ActivitiesAdmin = () => {
         sort_order: activity.sort_order || 0
       })));
     } catch (err: any) {
-      console.error('Failed to update order:', err);
+      errorHandler.handleError(err, { 
+        operation: 'Updating activity order', 
+        component: 'ActivitiesAdmin' 
+      });
       setError('Failed to update activity order. Please try again.');
       await loadActivities(); // Reload to reset order
     }

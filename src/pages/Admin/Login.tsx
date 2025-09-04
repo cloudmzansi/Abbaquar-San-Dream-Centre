@@ -34,7 +34,7 @@ const AdminLogin = () => {
       return;
     }
     
-    if (!/^[\w-\. +%]+@([\w-]+\.)+[A-Za-z]{2,4}$/.test(email)) {
+    if (!/^[\w-. +%]+@([\w-]+\.)+[A-Za-z]{2,4}$/.test(email)) {
       setError('Invalid email format');
       return;
     }
@@ -69,7 +69,7 @@ const AdminLogin = () => {
       return;
     }
     
-    if (!/^[\w-\. +%]+@([\w-]+\.)+[A-Za-z]{2,4}$/.test(forgotPasswordEmail)) {
+    if (!/^[\w-. +%]+@([\w-]+\.)+[A-Za-z]{2,4}$/.test(forgotPasswordEmail)) {
       setForgotPasswordMessage('Invalid email format');
       return;
     }

@@ -29,8 +29,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
     { icon: Home, label: 'Dashboard', path: '/login/dashboard' },
     { icon: Image, label: 'Gallery', path: '/login/gallery' },
     { icon: FileImage, label: 'Activities', path: '/login/activities' },
-    { icon: Users, label: 'Team', path: '/login/team' },
-    { icon: Heart, label: 'Volunteers', path: '/login/volunteers' },
+    { icon: Users, label: 'Team & Volunteers', path: '/login/team' },
     { icon: Calendar, label: 'Events', path: '/login/events' },
     { icon: Database, label: 'Backup', path: '/login/backup' },
   ];

@@ -2,7 +2,7 @@ import { supabase } from './supabase';
 import { getCachedData, invalidateCachePattern } from './cacheService';
 
 // Cache for dashboard data
-let dashboardCache: any = null;
+const dashboardCache: any = null;
 const CACHE_EXPIRATION = 2 * 60 * 1000; // 2 minutes
 
 // Get dashboard data with optimized batch queries

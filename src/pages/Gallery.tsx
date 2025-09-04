@@ -4,6 +4,8 @@ import Footer from "@/components/Footer";
 import { getGalleryImages } from '@/lib/galleryService';
 import { GalleryImage } from '@/types/supabase';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { SEO, SEOConfigs } from "@/components/SEO";
+import { Breadcrumb } from "@/components/Breadcrumb";
 
 const Gallery = () => {
   const [photos, setPhotos] = useState<GalleryImage[]>([]);
@@ -92,13 +94,16 @@ const Gallery = () => {
   }, [lightboxOpen, closeLightbox, navigateToNextPhoto, navigateToPrevPhoto]);
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <Header />
-      <main className="flex-grow">
+    <>
+      <SEO {...SEOConfigs.gallery} />
+      <div className="flex flex-col min-h-screen">
+        <Header />
+        <Breadcrumb />
+        <main className="flex-grow">
         {/* Hero Section */}
         <section aria-labelledby="gallery-hero-title" className="bg-[#073366] text-white py-24 pt-32">
           <div className="container-custom">
-            <h1 id="gallery-hero-title" className="text-4xl md:text-5xl font-bold mb-6 text-center">Gallery</h1>
+            <h1 id="gallery-hero-title" className="text-4xl md:text-5xl font-bold mb-6 text-center font-serif">Gallery</h1>
             <p className="text-xl text-center max-w-3xl mx-auto">
               Browse through images of our activities, events, and community outreach programs.
             </p>
@@ -241,9 +246,10 @@ const Gallery = () => {
             </div>
           </div>
         )}
-      </main>
-      <Footer />
-    </div>
+        </main>
+        <Footer />
+      </div>
+    </>
   );
 };
 

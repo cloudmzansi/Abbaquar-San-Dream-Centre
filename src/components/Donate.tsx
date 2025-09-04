@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Shield, Heart, Users, CheckCircle, Lock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { PayFastService } from '@/lib/payfast';
 
@@ -130,14 +130,16 @@ const Donate = () => {
   return (
     <>
       <span id="donate" className="block h-0 w-0 -mt-24" aria-hidden="true"></span>
-      <section className="py-16 pt-24 md:py-24 bg-gray-50">
+      <section className="py-16 pt-24 md:py-24 bg-gradient-to-br from-gray-50 to-white">
         <div className="container-custom">
           <div className="text-center mb-16">
             <span className="text-[#D72660] font-semibold mb-4 block">Make a Difference</span>
             <h2 className="text-4xl md:text-5xl font-bold mb-6 text-[#073366] font-serif">Support Our Cause</h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto mb-8">
               Your donation helps us continue our mission of uplifting and supporting our community. Every contribution makes a difference.
             </p>
+            
+
           </div>
           
           <div className="max-w-2xl mx-auto">
@@ -150,10 +152,10 @@ const Donate = () => {
                       <button
                         key={amt}
                         type="button"
-                        className={`py-4 px-6 border-2 rounded-xl transition-all font-semibold ${
+                        className={`py-4 px-6 border-2 rounded-xl transition-all font-semibold transform hover:scale-105 ${
                           selectedAmount === amt 
-                            ? 'bg-[#D72660] text-white border-[#D72660]' 
-                            : 'border-gray-200 text-gray-700 hover:border-[#D72660] hover:text-[#D72660]'
+                            ? 'bg-[#D72660] text-white border-[#D72660] shadow-lg' 
+                            : 'border-gray-200 text-gray-700 hover:border-[#D72660] hover:text-[#D72660] hover:shadow-md'
                         }`}
                         onClick={() => handleAmountClick(amt)}
                         disabled={isProcessing}
@@ -179,8 +181,45 @@ const Donate = () => {
                     />
                   </div>
                 </div>
-                
 
+                {/* Trust & Security Badges */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Shield className="h-5 w-5 text-green-600" />
+                      <span className="text-sm text-gray-600">Secure Payment via PayFast</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Lock className="h-5 w-5 text-green-600" />
+                      <span className="text-sm text-gray-600">SSL Encrypted</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Donate Button */}
+                <button
+                  onClick={handleDonate}
+                  disabled={isProcessing}
+                  className="w-full bg-[#D72660] hover:bg-[#b91c47] text-white font-semibold py-4 px-8 rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-3"
+                >
+                  {isProcessing ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <span>Donate Now - Make a Difference</span>
+                      <ArrowRight className="h-5 w-5" />
+                    </>
+                  )}
+                </button>
+
+                {/* Additional Trust Elements */}
+                <div className="text-center text-sm text-gray-500">
+                  <p>Your donation is tax-deductible • 100% goes to community programs</p>
+                  <p className="mt-2">Need help? Contact us at 084 251 5740</p>
+                </div>
 
                 {/* Direct PayFast Form */}
                 <form 
@@ -198,34 +237,12 @@ const Donate = () => {
                   {/* Return URLs */}
                   <input type="hidden" name="return_url" value={`${window.location.origin}/?donation=success`} />
                   <input type="hidden" name="cancel_url" value={`${window.location.origin}/?donation=cancelled`} />
+                  <input type="hidden" name="notify_url" value={`${window.location.origin}/api/payfast-itn`} />
                   
-                  {/* Email confirmation */}
-                  <input type="hidden" name="email_confirmation" value="1" />
-                  <input type="hidden" name="confirmation_address" value="info@abbaquar.org" />
-                  
-                  {/* Name fields */}
-                  <input type="hidden" name="name_first" value="Donor" />
-                  <input type="hidden" name="name_last" value="Anonymous" />
-                  
-                  {/* Payment method */}
-                  <input type="hidden" name="payment_method" value="cc" />
+                  {/* Additional fields for better tracking */}
+                  <input type="hidden" name="custom_str1" value="homepage_donation" />
+                  <input type="hidden" name="custom_str2" value={selectedAmount} />
                 </form>
-
-                <div className="pt-4">
-                  <button 
-                    onClick={handleDonate}
-                    type="button" 
-                    className="w-full bg-[#073366] text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-opacity-90 transition-all flex items-center justify-center group"
-                    disabled={isProcessing}
-                  >
-                    <span>{isProcessing ? "Processing..." : "Donate Now"}</span>
-                    {!isProcessing && (
-                      <span className="ml-2 bg-[#D72660] rounded-full p-1 group-hover:translate-x-1 transition-transform">
-                        <ArrowRight size={18} className="text-white" />
-                      </span>
-                    )}
-                  </button>
-                </div>
               </div>
             </div>
           </div>

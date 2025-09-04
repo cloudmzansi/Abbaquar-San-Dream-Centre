@@ -1,3 +1,5 @@
+import { Star, Quote } from 'lucide-react';
+
 const About = () => {
   return (
     <section id="about" className="py-16 pb-28 md:py-24 bg-white">
@@ -9,6 +11,7 @@ const About = () => {
             We are a cultural organisation dedicated to uplifting and rebuilding our community through various programmes and initiatives.
           </p>
         </div>
+        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-center">
           <div className="space-y-6 order-2 md:order-1">
             <div>
@@ -50,7 +53,6 @@ const About = () => {
             </div>
           </div>
         </div>
-
       </div>
     </section>
   );

@@ -43,6 +43,7 @@ export interface TeamMember {
   image_path?: string;
   sort_order?: number;
   is_active?: boolean;
+  category?: 'leadership' | 'management' | 'volunteers';
 }
 
 export interface Volunteer {
@@ -54,7 +55,13 @@ export interface Volunteer {
   image_path?: string;
   sort_order?: number;
   is_active?: boolean;
+  category?: 'leadership' | 'management' | 'volunteers';
 }
+
+// Union type for admin panel that includes source information
+export type TeamMemberWithSource = TeamMember & { source: 'team_members' };
+export type VolunteerWithSource = Volunteer & { source: 'volunteers' };
+export type MemberWithSource = TeamMemberWithSource | VolunteerWithSource;
 
 export interface Database {
   public: {

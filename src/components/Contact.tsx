@@ -5,7 +5,7 @@ import HomeContactForm from './HomeContactForm';
 const Contact = () => {
 
   return (
-    <section className="py-24 bg-gray-100">
+    <section id="contact-section" className="py-24 bg-gray-100">
       <div className="container-custom">
         <div className="text-center mb-16">
           <span className="text-[#D72660] font-semibold mb-4 block tracking-wide uppercase text-sm">Get In Touch</span>

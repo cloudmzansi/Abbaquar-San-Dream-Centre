@@ -3,18 +3,23 @@ import Footer from "@/components/Footer";
 import { Phone, MapPin, Mail } from 'lucide-react';
 import MapboxMap from '@/components/MapboxMap';
 import HomeContactForm from '@/components/HomeContactForm';
+import { SEO, SEOConfigs } from "@/components/SEO";
+import { Breadcrumb } from "@/components/Breadcrumb";
 
 const Contact = () => {
   return (
-    <div className="flex flex-col min-h-screen">
-      <Header />
-      <main className="flex-grow">
+    <>
+      <SEO {...SEOConfigs.contact} />
+      <div className="flex flex-col min-h-screen">
+        <Header />
+        <Breadcrumb />
+        <main className="flex-grow">
         {/* Hero Section */}
         <section aria-labelledby="contact-hero-title" className="bg-[#073366] py-24 pt-32" role="banner">
           <div className="container-custom">
-            <h1 id="contact-hero-title" className="text-[#F5F5F0] text-4xl md:text-5xl font-bold mb-6 text-center">Contact Us</h1>
+            <h1 id="contact-hero-title" className="text-[#F5F5F0] text-4xl md:text-5xl font-bold mb-6 text-center font-serif">Contact Us</h1>
             <p className="text-[#E0E9FF] text-xl text-center max-w-3xl mx-auto">
-              No matter what stage, age, or season you find yourself in, Abbaquar-San Dream Centre is for you! 
+              No matter what stage, age, or season you find yourself in, the Abbaquar-San Dream Centre is for you! 
               We invite you to come just as you are and be part of this community of people who are striving 
               towards improving lives!
             </p>
@@ -106,9 +111,10 @@ const Contact = () => {
             </div>
           </div>
         </section>
-      </main>
-      <Footer />
-    </div>
+        </main>
+        <Footer />
+      </div>
+    </>
   );
 };
 

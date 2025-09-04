@@ -6,6 +6,8 @@ import { format, parseISO } from 'date-fns';
 import EventModal from '@/components/EventModal';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { SEO, SEOConfigs } from "@/components/SEO";
+import { Breadcrumb } from "@/components/Breadcrumb";
 
 /**
  * Format a date string as 'DD/MM/YYYY'.
@@ -154,19 +156,20 @@ const Events = () => {
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <Header />
-      <main className="flex-grow">
+    <>
+      <SEO {...SEOConfigs.events} />
+      <div className="flex flex-col min-h-screen">
+        <Header />
+        <Breadcrumb />
+        <main className="flex-grow">
         {/* Hero Section */}
-        <section className="bg-gradient-to-b from-[#083060] to-[#052548] text-white py-16 md:py-24">
+        <section aria-labelledby="events-hero-title" className="bg-[#073366] text-white py-24 pt-32">
           <div className="container-custom">
-            <div className="max-w-4xl mx-auto text-center">
-              <h1 className="text-4xl md:text-5xl font-bold mb-6 font-serif">Our Events</h1>
-              <p className="text-lg md:text-xl text-gray-200">
-                Join our community events and make a difference. Every event is an opportunity to connect, 
-                learn, and create positive change.
-              </p>
-            </div>
+            <h1 id="events-hero-title" className="text-4xl md:text-5xl font-bold mb-6 text-center font-serif">Our Events</h1>
+            <p className="text-xl text-center max-w-3xl mx-auto">
+              Join our community events and make a difference. Every event is an opportunity to connect, 
+              learn, and create positive change.
+            </p>
           </div>
         </section>
 
@@ -274,16 +277,17 @@ const Events = () => {
             )}
           </div>
         </section>
-      </main>
-      <Footer />
+              </main>
+        <Footer />
 
-      {/* Event Modal */}
-      <EventModal
-        event={selectedEvent}
-        isOpen={isModalOpen}
-        onClose={closeModal}
-      />
-    </div>
+        {/* Event Modal */}
+        <EventModal
+          event={selectedEvent}
+          isOpen={isModalOpen}
+          onClose={closeModal}
+        />
+      </div>
+    </>
   );
 };
 

@@ -1,6 +1,6 @@
-import photosData from '../../data/photos.json';
-import activitiesData from '../../data/activities.json';
-import eventsData from '../../data/events.json';
+import photosData from '../data/photos.json';
+import activitiesData from '../data/activities.json';
+import eventsData from '../data/events.json';
 
 export interface Photo {
   id: number;

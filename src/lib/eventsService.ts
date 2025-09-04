@@ -3,8 +3,10 @@ import { Event } from '@/types/supabase';
 import { v4 as uuidv4 } from 'uuid';
 import { getCachedData, invalidateCachePattern } from './cacheService';
 import { isAuthenticated } from './authService';
+import { errorHandler, handleAsyncError } from './errorHandler';
+import { CONSTANTS } from './common';
 
-const BUCKET_NAME = 'events';
+const BUCKET_NAME = CONSTANTS.STORAGE_BUCKETS.EVENTS;
 
 /**
  * Helper function to get the correct image URL for events
@@ -29,15 +31,13 @@ export async function getEvents(displayOn?: 'home' | 'events' | 'both'): Promise
   const cacheKey = `events_${displayOn || 'all'}`;
   
   return getCachedData(cacheKey, async () => {
-    try {
-      let query = supabase.from('events')
+    const result = await handleAsyncError(async () => {
+      const query = supabase.from('events')
         .select('*')
         .eq('is_archived', false)
         .eq('status', 'published')
         .or(`publish_at.is.null,publish_at.lte.${new Date().toISOString()}`)
         .order('date', { ascending: true });
-      
-      // Since all events are now displayed on home page, we don't filter by display_on
       
       const { data, error } = await query;
       
@@ -45,21 +45,26 @@ export async function getEvents(displayOn?: 'home' | 'events' | 'both'): Promise
       if (error || !data || data.length === 0) {
         if (process.env.NODE_ENV !== 'production') {
           console.log('Using sample events data due to:', error ? 'Supabase error' : 'No events in database');
-          if (error) console.error('Supabase error details:', error);
+          if (error) {
+            errorHandler.handleError(error, { 
+              operation: 'Supabase query', 
+              component: 'eventsService.getEvents' 
+            });
+          }
         }
         
         // Import sample events from local JSON file
         const sampleEvents = await import('../data/sampleEvents.json')
           .then(module => module.default as Event[])
           .catch(err => {
-            console.error('Error loading sample events:', err);
+            errorHandler.handleError(err, { 
+              operation: 'Loading sample events', 
+              component: 'eventsService.getEvents' 
+            });
             return [] as Event[];
           });
         
-        // Since all events are now displayed on home page, we don't filter by display_on
-        let filteredEvents = sampleEvents;
-        
-        return filteredEvents;
+        return sampleEvents;
       }
       
       // Transform data to include optimized image URLs
@@ -69,24 +74,13 @@ export async function getEvents(displayOn?: 'home' | 'events' | 'both'): Promise
       }));
       
       return transformedData;
-    } catch (error) {
-      console.error('Error in getEvents:', error);
-      
-      // Final fallback - import sample events from local JSON file
-      try {
-        const sampleEvents = await import('../data/sampleEvents.json')
-          .then(module => module.default as Event[]);
-        
-        // Since all events are now displayed on home page, we don't filter by display_on
-        let filteredEvents = sampleEvents;
-        
-        return filteredEvents;
-      } catch (fallbackError) {
-        console.error('Error loading fallback sample events:', fallbackError);
-        return [] as Event[]; // Return empty array as last resort
-      }
-    }
-  }, 5 * 60 * 1000); // 5 minute cache
+    }, { 
+      operation: 'Fetching events', 
+      component: 'eventsService.getEvents' 
+    }, [] as Event[]);
+
+    return result.data || [];
+  }, CONSTANTS.CACHE_DURATIONS.SHORT);
 }
 
 // Get events with pagination for admin interface
@@ -99,7 +93,7 @@ export async function getEventsPaginated(
   
   return getCachedData(cacheKey, async () => {
     try {
-      let query = supabase.from('events').select('*', { count: 'exact' });
+      const query = supabase.from('events').select('*', { count: 'exact' });
       
       // Since all events are now displayed on home page, we don't filter by display_on
       
@@ -107,10 +101,10 @@ export async function getEventsPaginated(
       const from = (page - 1) * limit;
       const to = from + limit - 1;
       
-      query = query.order('date', { ascending: true })
+      const finalQuery = query.order('date', { ascending: true })
                   .range(from, to);
       
-      const { data, error, count } = await query;
+      const { data, error, count } = await finalQuery;
       
       if (error) {
         throw error;
@@ -131,10 +125,13 @@ export async function getEventsPaginated(
         totalPages
       };
     } catch (err) {
-      console.error('Error fetching paginated events:', err);
+      errorHandler.handleError(err, { 
+        operation: 'Fetching paginated events', 
+        component: 'eventsService.getEventsPaginated' 
+      });
       throw err;
     }
-  }, 2 * 60 * 1000); // 2 minute cache for admin data
+  }, CONSTANTS.CACHE_DURATIONS.SHORT);
 }
 
 // Get a single event by ID
@@ -149,7 +146,10 @@ export async function getEvent(id: string): Promise<Event> {
       .single();
       
     if (error) {
-      console.error('Error fetching event:', error);
+      errorHandler.handleError(error, { 
+        operation: 'Fetching event', 
+        component: 'eventsService.getEvent' 
+      });
       throw error;
     }
     
@@ -199,7 +199,10 @@ export async function createEvent(
     .single();
     
   if (error) {
-    console.error('Error creating event:', error);
+    errorHandler.handleError(error, { 
+      operation: 'Creating event', 
+      component: 'eventsService.createEvent' 
+    });
     throw error;
   }
   
