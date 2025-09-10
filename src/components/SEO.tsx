@@ -18,9 +18,9 @@ interface SEOProps {
 }
 
 export const SEO: React.FC<SEOProps> = ({
-  title = 'Abbaquar-San Dream Centre - Community Development & Youth Programs | Cape Town',
-  description = 'Abbaquar-San Dream Centre is a cultural organisation in Cape Town dedicated to assisting, uplifting and rebuilding our community through youth programs, cultural activities, and community support services.',
-  keywords = 'community development, youth programs, Cape Town, cultural activities, community support, nonprofit organization, South Africa, Western Cape',
+  title = 'Abbaquar-San Dream Centre - Community Development & Youth Programs | Wentworth, Durban',
+  description = 'Abbaquar-San Dream Centre is a cultural organisation in Wentworth, Durban dedicated to assisting, uplifting and rebuilding our community through youth programs, cultural activities, and community support services.',
+  keywords = 'community development, youth programs, Wentworth Durban, cultural activities, community support, nonprofit organization, South Africa, KwaZulu-Natal',
   canonical,
   ogImage = 'https://abbaquar.org/assets/hero.jpg',
   ogType = 'website',
@@ -72,7 +72,7 @@ export const SEO: React.FC<SEOProps> = ({
         {/* Additional Meta Tags */}
         <meta name="author" content="Abbaquar-San Dream Centre" />
         <meta name="geo.region" content="ZA-WC" />
-        <meta name="geo.placename" content="Cape Town" />
+        <meta name="geo.placename" content="Wentworth, Durban" />
         <meta name="geo.position" content="-33.9249;18.4241" />
         <meta name="ICBM" content="-33.9249, 18.4241" />
       </Helmet>
@@ -93,40 +93,40 @@ export const SEO: React.FC<SEOProps> = ({
 // Predefined SEO configurations for different pages
 export const SEOConfigs = {
   home: {
-    title: 'Abbaquar-San Dream Centre - Community Development & Youth Programs | Cape Town',
-    description: 'Join Abbaquar-San Dream Centre in Cape Town. Support our mission to uplift youth and families through community programs, cultural activities, and volunteer opportunities. Make a difference today.',
-    keywords: 'community development, youth programs, Cape Town, cultural activities, community support, nonprofit organization, South Africa, Western Cape, volunteer opportunities, community volunteering, youth empowerment, Cape Town community center, donate to community, family support programs',
+    title: 'Abbaquar-San Dream Centre - Community Development & Youth Programs | Wentworth, Durban',
+    description: 'Join Abbaquar-San Dream Centre in Wentworth, Durban. Support our mission to uplift youth and families through community programs, cultural activities, and volunteer opportunities. Make a difference today.',
+    keywords: 'community development, youth programs, Wentworth Durban, cultural activities, community support, nonprofit organization, South Africa, KwaZulu-Natal, volunteer opportunities, community volunteering, youth empowerment, Durban community center, donate to community, family support programs',
     structuredData: { type: 'organization' as const }
   },
   about: {
-    title: 'About Us - Abbaquar-San Dream Centre | Community Development in Cape Town',
-    description: 'Learn about Abbaquar-San Dream Centre\'s mission to assist, uplift and rebuild our community through cultural activities and youth development programs in Cape Town.',
-    keywords: 'about us, community development, Cape Town, nonprofit, youth programs, cultural activities',
+    title: 'About Us - Abbaquar-San Dream Centre | Community Development in Wentworth, Durban',
+    description: 'Learn about Abbaquar-San Dream Centre\'s mission to assist, uplift and rebuild our community through cultural activities and youth development programs in Wentworth, Durban.',
+    keywords: 'about us, community development, Wentworth Durban, nonprofit, youth programs, cultural activities',
     canonical: '/about-us',
     structuredData: { type: 'localBusiness' as const }
   },
   activities: {
     title: 'Community Activities & Programs - Abbaquar-San Dream Centre',
-    description: 'Discover our community activities and programs including youth development, cultural events, and community support services in Cape Town.',
-    keywords: 'community activities, youth programs, cultural events, Cape Town, community support',
+    description: 'Discover our community activities and programs including youth development, cultural events, and community support services in Wentworth, Durban.',
+    keywords: 'community activities, youth programs, cultural events, Wentworth Durban, community support',
     canonical: '/activities'
   },
   events: {
-    title: 'Upcoming Events - Abbaquar-San Dream Centre | Community Events in Cape Town',
-    description: 'Join our upcoming community events and cultural activities in Cape Town. Stay connected with Abbaquar-San Dream Centre\'s latest events and programs.',
-    keywords: 'community events, cultural activities, Cape Town events, youth programs, community gatherings',
+    title: 'Upcoming Events - Abbaquar-San Dream Centre | Community Events in Wentworth, Durban',
+    description: 'Join our upcoming community events and cultural activities in Wentworth, Durban. Stay connected with Abbaquar-San Dream Centre\'s latest events and programs.',
+    keywords: 'community events, cultural activities, Wentworth Durban events, youth programs, community gatherings',
     canonical: '/events'
   },
   gallery: {
     title: 'Photo Gallery - Abbaquar-San Dream Centre | Community Activities & Events',
-    description: 'Browse our photo gallery showcasing community activities, events, and the impact of Abbaquar-San Dream Centre\'s programs in Cape Town.',
-    keywords: 'photo gallery, community photos, Cape Town, cultural activities, youth programs',
+    description: 'Browse our photo gallery showcasing community activities, events, and the impact of Abbaquar-San Dream Centre\'s programs in Wentworth, Durban.',
+    keywords: 'photo gallery, community photos, Wentworth Durban, cultural activities, youth programs',
     canonical: '/gallery'
   },
   contact: {
     title: 'Contact Us - Abbaquar-San Dream Centre | Get in Touch',
-    description: 'Contact Abbaquar-San Dream Centre in Cape Town. Get in touch for community support, youth programs, or to learn more about our services.',
-    keywords: 'contact us, Cape Town, community support, youth programs, get in touch',
+    description: 'Contact Abbaquar-San Dream Centre in Wentworth, Durban. Get in touch for community support, youth programs, or to learn more about our services.',
+    keywords: 'contact us, Wentworth Durban, community support, youth programs, get in touch',
     canonical: '/contact'
   }
 };

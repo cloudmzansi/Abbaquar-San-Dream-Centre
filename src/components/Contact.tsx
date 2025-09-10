@@ -53,7 +53,7 @@ const Contact = () => {
                   <div>
                     <h4 className="text-white font-semibold text-base mb-1">Phone</h4>
                     <p className="text-gray-200 text-sm">084 251 5740</p>
-                    <p className="text-gray-200 text-sm">072 267 2587</p>
+                    <p className="text-gray-200 text-sm">064 973 7256</p>
                   </div>
                 </div>
                 
@@ -63,7 +63,7 @@ const Contact = () => {
                   </div>
                   <div>
                     <h4 className="text-white font-semibold text-base mb-1">Email</h4>
-                    <p className="text-gray-200 text-sm break-all">olivia@abbaquar-sandreamcentre.co.za</p>
+                    <p className="text-gray-200 text-sm break-all">info@abbaquar-sandreamcentre.co.za</p>
                   </div>
                 </div>
               </div>

@@ -48,7 +48,7 @@ export const OrganizationSchema: React.FC = () => {
     "address": {
       "@type": "PostalAddress",
       "streetAddress": "San Dream Centre",
-      "addressLocality": "Cape Town",
+      "addressLocality": "Wentworth, Durban",
       "addressRegion": "Western Cape",
       "addressCountry": "ZA"
     },
@@ -66,7 +66,7 @@ export const OrganizationSchema: React.FC = () => {
     "foundingDate": "2020",
     "areaServed": {
       "@type": "Place",
-      "name": "Cape Town, Western Cape, South Africa"
+      "name": "Wentworth, Durban, KwaZulu-Natal, South Africa"
     },
     "serviceArea": {
       "@type": "GeoCircle",
@@ -125,7 +125,7 @@ export const LocalBusinessSchema: React.FC = () => {
     "address": {
       "@type": "PostalAddress",
       "streetAddress": "San Dream Centre",
-      "addressLocality": "Cape Town",
+      "addressLocality": "Wentworth, Durban",
       "addressRegion": "Western Cape",
       "addressCountry": "ZA"
     },
@@ -141,7 +141,7 @@ export const LocalBusinessSchema: React.FC = () => {
     "currenciesAccepted": "ZAR",
     "areaServed": {
       "@type": "Place",
-      "name": "Cape Town, Western Cape, South Africa"
+      "name": "Wentworth, Durban, KwaZulu-Natal, South Africa"
     },
     "serviceArea": {
       "@type": "GeoCircle",
@@ -202,7 +202,7 @@ export const EventSchema: React.FC<{ event: any }> = ({ event }) => {
       "address": {
         "@type": "PostalAddress",
         "streetAddress": "San Dream Centre",
-        "addressLocality": "Cape Town",
+        "addressLocality": "Wentworth, Durban",
         "addressRegion": "Western Cape",
         "addressCountry": "ZA"
       }

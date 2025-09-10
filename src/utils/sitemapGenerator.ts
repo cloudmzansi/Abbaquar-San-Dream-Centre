@@ -151,7 +151,7 @@ ${allUrls.map(url => `  <url>
         loc: `${this.baseUrl}${image.image_url}`,
         caption: image.description || image.title,
         title: image.title,
-        geo_location: 'Cape Town, Western Cape, South Africa',
+        geo_location: 'Wentworth, Durban, KwaZulu-Natal, South Africa',
         license: 'https://creativecommons.org/licenses/by-nc/4.0/'
       })) || [];
 

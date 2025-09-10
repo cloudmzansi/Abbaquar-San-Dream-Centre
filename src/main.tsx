@@ -9,21 +9,6 @@ import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import { errorHandler } from './lib/errorHandler';
 
-// Register service worker for improved performance and offline capabilities
-if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then(registration => {
-        console.log('ServiceWorker registration successful with scope: ', registration.scope);
-      })
-      .catch(error => {
-        errorHandler.handleError(error, { 
-          operation: 'ServiceWorker registration',
-          component: 'main.tsx'
-        });
-      });
-  });
-}
 
 // Add global error handler to catch unhandled exceptions
 window.addEventListener('error', (event) => {

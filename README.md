@@ -44,7 +44,6 @@ Abbaquar San Dream Centre is a community organisation that serves people of all 
 - **Image Optimization**: WebP format with responsive sizing and automatic compression
 - **Web Vitals**: Core Web Vitals optimisation for better SEO
 - **Database Optimization**: Performance indexes and Row Level Security
-- **PWA Ready**: Service worker for offline capabilities
 - **Caching Strategy**: Efficient resource loading and browser caching
 
 ## 🛠️ Technology Stack

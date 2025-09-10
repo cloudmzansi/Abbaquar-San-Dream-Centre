@@ -101,7 +101,7 @@ export const organizationFAQs: FAQItem[] = [
   },
   {
     question: "Where is Abbaquar-San Dream Centre located?",
-    answer: "We are located in Cape Town, Western Cape, South Africa. Our centre serves the local community and surrounding areas with our cultural and youth development programs."
+    answer: "We are located in Wentworth, Durban, KwaZulu-Natal, South Africa. Our centre serves the local community and surrounding areas with our cultural and youth development programs."
   },
   {
     question: "What activities and programs do you offer?",

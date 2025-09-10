@@ -57,7 +57,7 @@ export class PayFastService {
     // These are required according to PayFast documentation
     paymentData.payment_method = 'cc';
     paymentData.email_confirmation = '1';
-    paymentData.confirmation_address = 'info@abbaquar.org';
+    paymentData.confirmation_address = 'info@abbaquar-sandreamcentre.co.za';
     
     // Generate signature
     const signature = this.generateSignature(paymentData);

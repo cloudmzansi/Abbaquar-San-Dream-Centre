@@ -50,9 +50,9 @@ const Footer = () => {
                   <a 
                     href="tel:+27722672587" 
                     className="hover:text-white transition-colors"
-                    aria-label="Call us at 072 267 2587"
+                    aria-label="Call us at 064 973 7256"
                   >
-                    072 267 2587
+                    064 973 7256
                   </a>
                 </div>
               </div>
@@ -61,11 +61,11 @@ const Footer = () => {
                   <Mail className="h-6 w-6 text-[#D72660]" aria-hidden="true" />
                 </div>
                 <a 
-                  href="mailto:olivia@abbaquar-sandreamcentre.co.za"
+                  href="mailto:info@abbaquar-sandreamcentre.co.za"
                   className="text-gray-300 text-sm break-all hover:text-white transition-colors"
-                  aria-label="Email us at olivia@abbaquar-sandreamcentre.co.za"
+                  aria-label="Email us at info@abbaquar-sandreamcentre.co.za"
                 >
-                  olivia@abbaquar-sandreamcentre.co.za
+                  info@abbaquar-sandreamcentre.co.za
                 </a>
               </div>
             </address>
