@@ -6,6 +6,8 @@ import { GalleryImage } from '@/types/supabase';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { SEO, SEOConfigs } from "@/components/SEO";
 import { Breadcrumb } from "@/components/Breadcrumb";
+import OptimizedImage from '@/components/ui/optimized-image';
+import { GallerySkeleton } from '@/components/ui/gallery-skeleton';
 
 const Gallery = () => {
   const [photos, setPhotos] = useState<GalleryImage[]>([]);
@@ -127,9 +129,7 @@ const Gallery = () => {
             </div>
             
             {isLoading ? (
-              <div className="flex justify-center items-center py-20">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#073366]"></div>
-              </div>
+              <GallerySkeleton count={9} className="grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 md:gap-8" />
             ) : error ? (
               <div className="bg-red-50 p-6 rounded-lg text-center text-red-600">
                 <p>{error}</p>
@@ -153,14 +153,18 @@ const Gallery = () => {
                         }
                       }}
                     >
-                      <img 
+                      <OptimizedImage 
                         src={photo.image_path} 
                         alt={photo.alt_text || `${photo.category} photo`} 
                         className="w-full h-48 md:h-64 object-cover" 
-                        width="384"
-                        height="256"
-                        onError={(e) => {
-                          e.currentTarget.src = '/assets/hero.jpg';
+                        width={384}
+                        height={256}
+                        quality={85}
+                        format="webp"
+                        loading="lazy"
+                        placeholder="blur"
+                        onError={() => {
+                          // Fallback handled by OptimizedImage component
                         }} 
                       />
                       {photo.title && (
@@ -225,12 +229,17 @@ const Gallery = () => {
               className="relative max-w-[90vw] max-h-[85vh] z-10"
               onClick={(e) => e.stopPropagation()}
             >
-              <img 
+              <OptimizedImage 
                 src={selectedPhoto.image_path} 
                 alt={selectedPhoto.alt_text || `${selectedPhoto.category} photo`}
                 className="max-w-full max-h-[85vh] object-contain animate-fade-in"
-                onError={(e) => {
-                  e.currentTarget.src = '/assets/hero.jpg';
+                width={1200}
+                quality={90}
+                format="webp"
+                loading="eager"
+                priority={true}
+                onError={() => {
+                  // Fallback handled by OptimizedImage component
                 }}
               />
               {selectedPhoto.title && (

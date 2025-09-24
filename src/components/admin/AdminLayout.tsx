@@ -46,13 +46,35 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row font-poppins bg-[#073366] bg-opacity-90">
+      {/* Mobile menu overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+      
       {/* Sidebar */}
       <aside
-        className="bg-[#073366] border-r border-white/10 text-white flex flex-col justify-between w-64 p-4 md:p-6 flex-shrink-0 h-screen overflow-y-auto fixed left-0 top-0 z-40"
+        className={`bg-[#073366] border-r border-white/10 text-white flex flex-col justify-between w-64 p-4 md:p-6 flex-shrink-0 h-screen overflow-y-auto fixed left-0 top-0 z-50 transition-transform duration-300 ${
+          isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+        } md:translate-x-0`}
       >
         <div className="flex-1 flex flex-col">
-          {/* Logo */}
-          <div className="flex items-center justify-center mb-8">
+          {/* Mobile close button */}
+          <div className="flex items-center justify-between mb-8 md:hidden">
+            <img src="/assets/abbaquar-logo.webp" alt="Logo" className="h-16 w-auto" />
+            <button
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="text-white hover:text-white/80 transition-colors p-2"
+              aria-label="Close menu"
+            >
+              <X size={24} />
+            </button>
+          </div>
+          
+          {/* Desktop logo */}
+          <div className="hidden md:flex items-center justify-center mb-8">
             <img src="/assets/abbaquar-logo.webp" alt="Logo" className="h-16 w-auto" />
           </div>
           {/* Navigation sections */}
@@ -121,8 +143,25 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
           </div>
         </div>
       </aside>
+      
+      {/* Mobile header */}
+      <header className="md:hidden bg-[#073366] border-b border-white/10 px-4 py-3 flex items-center justify-between">
+        <button
+          onClick={() => setIsMobileMenuOpen(true)}
+          className="text-white hover:text-white/80 transition-colors"
+          aria-label="Open menu"
+        >
+          <Menu size={24} />
+        </button>
+        <div className="flex items-center gap-2">
+          <img src="/assets/abbaquar-logo.webp" alt="Logo" className="h-8 w-auto" />
+          <span className="text-white font-medium text-sm">Admin</span>
+        </div>
+        <div className="w-6" /> {/* Spacer for centering */}
+      </header>
+      
       {/* Main content area with header */}
-      <div className="flex-1 flex flex-col bg-[#0c2342] ml-64">
+      <div className="flex-1 flex flex-col bg-[#0c2342] md:ml-64">
         <main className="flex-1 p-3 sm:p-4 md:p-6 overflow-auto">
           {children}
         </main>

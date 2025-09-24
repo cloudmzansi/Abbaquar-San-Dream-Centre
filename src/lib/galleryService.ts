@@ -26,10 +26,10 @@ export async function getGalleryImages(category?: string): Promise<GalleryImage[
         throw error;
       }
       
-      // Transform data to include optimized image URLs
+      // Transform data to include optimized image URLs with better compression
       const transformedData = data.map(image => ({
         ...image,
-        image_path: getOptimizedImageUrl(BUCKET_NAME, image.image_path)
+        image_path: getOptimizedImageUrl(BUCKET_NAME, image.image_path, 800, 85, 'webp')
       }));
       
       return transformedData;
@@ -69,10 +69,10 @@ export async function getGalleryImagesPaginated(
         throw error;
       }
       
-      // Transform data to include optimized image URLs
+      // Transform data to include optimized image URLs with better compression
       const transformedData = data.map(image => ({
         ...image,
-        image_path: getOptimizedImageUrl(BUCKET_NAME, image.image_path)
+        image_path: getOptimizedImageUrl(BUCKET_NAME, image.image_path, 800, 85, 'webp')
       }));
       
       const totalPages = Math.ceil((count || 0) / limit);

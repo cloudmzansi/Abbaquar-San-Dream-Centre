@@ -41,30 +41,18 @@ export async function getEvents(displayOn?: 'home' | 'events' | 'both'): Promise
       
       const { data, error } = await query;
       
-      // If there's an error or no data, fall back to local sample data
-      if (error || !data || data.length === 0) {
-        if (process.env.NODE_ENV !== 'production') {
-          console.log('Using sample events data due to:', error ? 'Supabase error' : 'No events in database');
-          if (error) {
-            errorHandler.handleError(error, { 
-              operation: 'Supabase query', 
-              component: 'eventsService.getEvents' 
-            });
-          }
-        }
-        
-        // Import sample events from local JSON file
-        const sampleEvents = await import('../data/sampleEvents.json')
-          .then(module => module.default as Event[])
-          .catch(err => {
-            errorHandler.handleError(err, { 
-              operation: 'Loading sample events', 
-              component: 'eventsService.getEvents' 
-            });
-            return [] as Event[];
-          });
-        
-        return sampleEvents;
+      // If there's an error, handle it appropriately
+      if (error) {
+        errorHandler.handleError(error, { 
+          operation: 'Supabase query', 
+          component: 'eventsService.getEvents' 
+        });
+        throw error;
+      }
+      
+      // If no data, return empty array (no fallback to sample events)
+      if (!data || data.length === 0) {
+        return [];
       }
       
       // Transform data to include optimized image URLs

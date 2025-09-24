@@ -3,6 +3,7 @@ import AdminLayout from '@/components/admin/AdminLayout';
 import { getGalleryImages, uploadGalleryImage, deleteGalleryImage } from '@/lib/galleryService';
 import { GalleryImage } from '@/types/supabase';
 import { Trash2, Upload, Image, Loader, CheckSquare } from 'lucide-react';
+import OptimizedImage from '@/components/ui/optimized-image';
 
 const GalleryAdmin = () => {
   const [images, setImages] = useState<GalleryImage[]>([]);
@@ -235,12 +236,17 @@ const GalleryAdmin = () => {
                   className={`bg-[#0c2342] rounded-lg overflow-hidden relative group border cursor-pointer transition-all ${selectedImages.includes(image.id) ? 'border-[#4f7df9] ring-2 ring-[#4f7df9]/50' : 'border-white/20'}`}
                   onClick={() => toggleSelection(image.id)}
                 >
-                  <img 
+                  <OptimizedImage 
                     src={image.image_path} 
                     alt={image.alt_text || `${image.category} photo`} 
                     className="w-full h-48 object-cover" 
-                    onError={(e) => {
-                      e.currentTarget.src = '/assets/hero.jpg';
+                    width={300}
+                    height={192}
+                    quality={80}
+                    format="webp"
+                    loading="lazy"
+                    onError={() => {
+                      // Fallback handled by OptimizedImage component
                     }} 
                   />
                   <div className="p-3">
